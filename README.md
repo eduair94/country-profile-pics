@@ -13,7 +13,7 @@ command line, and it never downloads the same picture twice.
 | macOS | [Apple Silicon (M1–M4)](https://github.com/eduair94/country-profile-pics/releases/latest/download/country-profile-pics-mac-arm64.dmg) · [Intel](https://github.com/eduair94/country-profile-pics/releases/latest/download/country-profile-pics-mac-x64.dmg) |
 | Linux | [AppImage](https://github.com/eduair94/country-profile-pics/releases/latest/download/country-profile-pics-linux-x64.AppImage) |
 
-All files and checksums: [latest release](https://github.com/eduair94/country-profile-pics/releases/latest).
+All files and checksums: [latest release](https://github.com/eduair94/country-profile-pics/releases/latest). More about the app: [whatsapp.checkleaked.cc/desktop-app](https://whatsapp.checkleaked.cc/desktop-app).
 
 The builds are not code-signed yet. On **Windows**, if you see "Windows
 protected your PC", click **More info → Run anyway**. On **macOS**, right-click
