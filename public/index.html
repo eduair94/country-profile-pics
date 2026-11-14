@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Country profile pictures</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&display=swap">
+  <link rel="stylesheet" href="/style.css">
+  <script src="/app.js" type="module"></script>
+</head>
+<body>
+  <div class="page">
+    <header class="masthead">
+      <h1>Country profile pictures</h1>
+      <p>Download every stored profile picture that matches your filters from the WP Data API, with a CSV of every field. Nothing is downloaded twice.</p>
+    </header>
+
+    <main class="layout">
+      <form class="setup" id="setup" novalidate>
+        <section class="block" aria-labelledby="key-title">
+          <h2 id="key-title">API key</h2>
+          <div class="key-row">
+            <label class="sr-only" for="key">API key</label>
+            <input id="key" name="key" type="password" autocomplete="off" spellcheck="false" placeholder="wapi_… or your RapidAPI key">
+            <button type="button" class="btn quiet" id="check">Check key</button>
+          </div>
+          <p class="hint" id="key-hint">A website key, or a RapidAPI key subscribed to WP Data DB Only. It stays on this computer.</p>
+          <p class="status" id="key-status" role="status" hidden></p>
+          <details class="sub">
+            <summary>Connection</summary>
+            <label class="field" for="transport">Send the key to
+              <select id="transport" name="transport">
+                <option value="auto">Detect from the key</option>
+                <option value="direct">Website proxy (direct key)</option>
+                <option value="rapidapi">RapidAPI (WP Data DB Only)</option>
+              </select>
+            </label>
+          </details>
+        </section>
+
+        <section class="block" aria-labelledby="country-title">
+          <h2 id="country-title">Country</h2>
+          <label class="sr-only" for="country">Country</label>
+          <select id="country" name="country" required>
+            <option value="">Choose a country…</option>
+          </select>
+          <p class="estimate" id="estimate" aria-live="polite">Check your key to see how many pictures each country has.</p>
+        </section>
+
+        <section class="block" aria-labelledby="filters-title">
+          <h2 id="filters-title">Filters</h2>
+          <div class="segmented" role="radiogroup" aria-label="Accounts">
+            <label><input type="radio" name="account" value="all" checked><span>Everyone</span></label>
+            <label><input type="radio" name="account" value="personal"><span>Personal</span></label>
+            <label><input type="radio" name="account" value="business"><span>Business</span></label>
+          </div>
+
+          <details class="sub" id="f-text">
+            <summary>Text and number <span class="count" data-for="f-text"></span></summary>
+            <label class="field">Words in name, about or business details
+              <input type="text" name="search" maxlength="200" placeholder="pizza, abogado, dentist…">
+            </label>
+            <label class="field">Number starts with
+              <input type="text" name="number" inputmode="numeric" maxlength="15" placeholder="at least 6 digits, e.g. 598991">
+            </label>
+          </details>
+
+          <details class="sub" id="f-business">
+            <summary>Business details <span class="count" data-for="f-business"></span></summary>
+            <p class="hint">These only match business accounts.</p>
+            <label class="field">Website domain <input type="text" name="domain" maxlength="200" placeholder="example.com"></label>
+            <label class="field">Address contains <input type="text" name="address" maxlength="200" placeholder="Montevideo"></label>
+            <label class="field">Email contains <input type="text" name="email" maxlength="200" placeholder="@gmail.com"></label>
+            <div class="trio">
+              <label class="field">Website<select name="hasWebsite"><option value="">Any</option><option value="true">With</option><option value="false">Without</option></select></label>
+              <label class="field">Email<select name="hasEmail"><option value="">Any</option><option value="true">With</option><option value="false">Without</option></select></label>
+              <label class="field">Address<select name="hasAddress"><option value="">Any</option><option value="true">With</option><option value="false">Without</option></select></label>
+            </div>
+            <div class="field">
+              <label for="cat-search">Categories</label>
+              <div class="key-row">
+                <input type="text" id="cat-search" placeholder="restaurant, dentist…" maxlength="60">
+                <button type="button" class="btn quiet" id="cat-find">Find</button>
+              </div>
+              <p class="hint">Each new lookup uses one request. Press Enter in the box to add what you typed as-is.</p>
+              <ul class="chips" id="cat-results" aria-label="Matching categories"></ul>
+              <ul class="chips selected" id="cat-selected" aria-label="Selected categories"></ul>
+              <div class="inline-choice" id="cat-mode" hidden>
+                <span>Match</span>
+                <label><input type="radio" name="categoriesMode" value="any" checked> any of them</label>
+                <label><input type="radio" name="categoriesMode" value="all"> all of them</label>
+              </div>
+            </div>
+          </details>
+
+          <details class="sub" id="f-dates">
+            <summary>Dates <span class="count" data-for="f-dates"></span></summary>
+            <label class="field">Date means
+              <select name="dateField">
+                <option value="last-seen">Last seen</option>
+                <option value="first-seen">First seen</option>
+              </select>
+            </label>
+            <div class="pair">
+              <label class="field">From <input type="date" name="dateFrom"></label>
+              <label class="field">To <input type="date" name="dateTo"></label>
+            </div>
+          </details>
+
+          <details class="sub" id="f-face">
+            <summary>Picture content <span class="count" data-for="f-face"></span></summary>
+            <p class="hint">From the automatic picture analysis. Only analysed pictures match these.</p>
+            <label class="field">Shows a
+              <select name="faceGender"><option value="">Anyone</option><option value="female">Woman</option><option value="male">Man</option></select>
+            </label>
+            <div class="pair">
+              <label class="field">Age from <input type="number" name="faceMinAge" min="0" max="120" inputmode="numeric"></label>
+              <label class="field">Age to <input type="number" name="faceMaxAge" min="18" max="120" inputmode="numeric" placeholder="18 or more"></label>
+            </div>
+            <div class="pair">
+              <label class="field">People, at least <input type="number" name="facePeopleMin" min="0" max="50" inputmode="numeric"></label>
+              <label class="field">People, at most <input type="number" name="facePeopleMax" min="0" max="50" inputmode="numeric"></label>
+            </div>
+            <div class="pair">
+              <label class="field">Glasses<select name="faceHasGlasses"><option value="">Any</option><option value="true">With</option><option value="false">Without</option></select></label>
+              <label class="field">Beard<select name="faceHasBeard"><option value="">Any</option><option value="true">With</option><option value="false">Without</option></select></label>
+            </div>
+            <label class="field">Picture tags <input type="text" name="faceTags" maxlength="400" placeholder="dog, beach, car"></label>
+            <div class="inline-choice">
+              <span>Match</span>
+              <label><input type="radio" name="faceTagsMode" value="any" checked> any tag</label>
+              <label><input type="radio" name="faceTagsMode" value="all"> all tags</label>
+            </div>
+          </details>
+        </section>
+
+        <section class="block" aria-labelledby="amount-title">
+          <h2 id="amount-title">How many</h2>
+          <div class="choice-stack">
+            <label class="choice">
+              <input type="radio" name="amount" value="some" checked>
+              <span>The newest</span>
+              <input type="number" id="max" name="max" min="1" step="1" value="1000" inputmode="numeric" aria-label="Number of pictures">
+              <span>pictures</span>
+            </label>
+            <label class="choice"><input type="radio" name="amount" value="all"><span>All of them</span></label>
+          </div>
+        </section>
+
+        <details class="block more">
+          <summary>More options</summary>
+          <label class="check"><input type="checkbox" name="dedupe" checked> Skip identical pictures (link them to the copy already saved)</label>
+          <label class="check"><input type="checkbox" name="saveRecords" checked> Keep every field for the CSV</label>
+          <label class="check"><input type="checkbox" name="includeHistory"> Also download older pictures</label>
+          <label class="check"><input type="checkbox" name="refresh"> Re-download pictures that changed since they were saved</label>
+          <label class="check"><input type="checkbox" name="restart"> Start over from the newest number (files already saved are kept)</label>
+          <label class="range">
+            <span>Parallel downloads <output id="concurrency-out">8</output></span>
+            <input type="range" name="concurrency" id="concurrency" min="1" max="32" value="8">
+          </label>
+          <div class="pair">
+            <label class="field">Numbers per request <input type="number" name="pageSize" min="1" max="500" value="500" inputmode="numeric"></label>
+            <label class="field">Gap between requests (ms) <input type="number" name="minIntervalMs" min="0" max="10000" value="550" inputmode="numeric"></label>
+          </div>
+        </details>
+
+        <div class="actions">
+          <button type="submit" class="btn primary" id="start">Download pictures</button>
+          <p class="status error" id="form-error" role="alert" hidden></p>
+        </div>
+      </form>
+
+      <div class="right">
+        <section class="run" id="run" aria-labelledby="run-title">
+          <div class="run-head">
+            <span class="flag" id="run-flag" aria-hidden="true"></span>
+            <div>
+              <h2 id="run-title">Nothing downloading yet</h2>
+              <p class="run-filters" id="run-filters"></p>
+              <p class="run-message" id="run-message" aria-live="polite">Choose a country and press Download pictures. Each picture appears here as it's saved.</p>
+            </div>
+          </div>
+
+          <dl class="counters" id="counters">
+            <div class="counter lead"><dt>New pictures</dt><dd id="c-saved">0</dd></div>
+            <div class="counter"><dt>Already saved</dt><dd id="c-existing">0</dd></div>
+            <div class="counter"><dt>Identical, linked</dt><dd id="c-duplicates">0</dd></div>
+            <div class="counter"><dt>No longer public</dt><dd id="c-missing">0</dd></div>
+            <div class="counter"><dt>Failed</dt><dd id="c-failed">0</dd></div>
+            <div class="counter"><dt>Requests used</dt><dd id="c-credits">0</dd></div>
+            <div class="counter"><dt>Requests left</dt><dd id="c-quota">—</dd></div>
+            <div class="counter"><dt>Downloaded</dt><dd id="c-bytes">0 MB</dd></div>
+          </dl>
+
+          <div class="progress" id="progress" hidden>
+            <div class="bar"><span id="bar-fill"></span></div>
+            <p id="progress-text"></p>
+          </div>
+
+          <div class="sheet-head">
+            <h3>Contact sheet</h3>
+            <label class="check small"><input type="checkbox" id="blur" checked> Blur previews</label>
+          </div>
+          <ol class="sheet blurred" id="sheet" aria-label="Most recently saved pictures"></ol>
+
+          <div class="run-actions">
+            <a class="btn primary" id="csv" href="#" aria-disabled="true">Download CSV</a>
+            <a class="btn quiet" id="zip" href="#" aria-disabled="true">Download ZIP</a>
+            <button type="button" class="btn quiet" id="cancel" hidden>Stop</button>
+            <p class="folder" id="folder" hidden>Pictures are saved in <code id="folder-path"></code></p>
+          </div>
+
+          <details class="log">
+            <summary>Activity</summary>
+            <ol id="log"></ol>
+          </details>
+        </section>
+
+        <section class="runs" aria-labelledby="runs-title">
+          <h2 id="runs-title">Earlier runs</h2>
+          <p class="hint" id="runs-empty">Runs you start appear here. Continue one to fetch only what's new.</p>
+          <ul id="runs"></ul>
+        </section>
+      </div>
+    </main>
+
+    <footer class="footer">
+      <p>These are pictures of real people. Use them only where the law allows, and keep them secure. Anyone can hide their number at
+        <a href="https://whatsapp.checkleaked.cc/opt-out" target="_blank" rel="noopener noreferrer">whatsapp.checkleaked.cc/opt-out</a>.
+        This project is not affiliated with WhatsApp or Meta.</p>
+    </footer>
+  </div>
+</body>
+</html>

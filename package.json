@@ -1,0 +1,42 @@
+{
+  "name": "country-profile-pics",
+  "version": "1.0.0",
+  "description": "Download every stored profile picture matching your filters from the WP Data API, with a CSV of every field. Resumable, cursor-based, never downloads twice.",
+  "type": "module",
+  "bin": {
+    "country-profile-pics": "src/cli.js"
+  },
+  "main": "src/job.js",
+  "exports": {
+    ".": "./src/job.js",
+    "./api": "./src/api.js"
+  },
+  "files": [
+    "src",
+    "public",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "start": "node src/server.js",
+    "cli": "node src/cli.js",
+    "test": "node --test \"test/*.test.js\""
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "yazl": "3.3.1"
+  },
+  "keywords": [
+    "profile-pictures",
+    "phone-numbers",
+    "dataset",
+    "downloader",
+    "csv-export",
+    "wp-data"
+  ],
+  "license": "MIT",
+  "author": "Eduardo Airaudo",
+  "homepage": "https://lookup.checkleaked.cc"
+}
