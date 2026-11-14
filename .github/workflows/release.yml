@@ -1,0 +1,82 @@
+name: Release
+
+# Push a tag like v1.0.0. Every platform is built, its packaged app is launched
+# once (smoke test), and the files land in a DRAFT release with checksums. The
+# draft is published by hand after a last check.
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            args: --win
+            app: dist/win-unpacked/Country Profile Pictures.exe
+          - os: macos-latest
+            args: --mac
+            app: dist/mac-arm64/Country Profile Pictures.app/Contents/MacOS/Country Profile Pictures
+          - os: ubuntu-latest
+            args: --linux
+            app: dist/linux-unpacked/country-profile-pics
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - name: Build
+        run: npx electron-builder ${{ matrix.args }} --publish never
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+      - name: Launch the packaged app once
+        run: |
+          smoke="$PWD/smoke.json"
+          if [ "$RUNNER_OS" = "Linux" ]; then
+            sudo apt-get update -qq && sudo apt-get install -y -qq xvfb > /dev/null
+            timeout 120 xvfb-run --auto-servernum "${{ matrix.app }}" --no-sandbox "--smoke=$smoke" || true
+          else
+            timeout 120 "${{ matrix.app }}" "--smoke=$smoke" || true
+          fi
+          cat "$smoke"
+          node -e "const r=require(process.argv[1]); if (r.desktop!=='object' || r.countries<200 || !r.config.desktop) { console.error('smoke test failed'); process.exit(1) }" "$smoke"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist-${{ runner.os }}
+          if-no-files-found: error
+          path: |
+            dist/*.exe
+            dist/*.dmg
+            dist/*.AppImage
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+      - name: Checksums
+        run: cd artifacts && sha256sum * > SHA256SUMS.txt && cat SHA256SUMS.txt
+      - name: Draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          gh release view "$TAG" > /dev/null 2>&1 || gh release create "$TAG" --draft --title "Country Profile Pictures $TAG" --notes-file .github/release-notes.md
+          gh release upload "$TAG" artifacts/* --clobber

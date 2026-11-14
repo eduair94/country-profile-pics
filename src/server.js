@@ -47,11 +47,17 @@ const keyId = (key, transport) => createHash('sha256').update(`${transport}:${ke
  * @param {string} [config.outDir]
  * @param {typeof fetch} [config.fetch] injectable for tests
  * @param {number} [config.minIntervalMs]
+ * @param {string} [config.token]       desktop app: every /api request must carry this
+ *                                      secret in the `cpp_token` cookie
+ * @param {{ save(key: string): Promise<void>, clear(): Promise<void> }} [config.keyStore]
+ *                                      desktop app: remembers the key (OS-encrypted)
  */
 export function createApp(config = {}) {
-  const serverKey = config.serverKey ?? ''
-  const outDir = path.resolve(config.outDir ?? DEFAULTS.outDir)
-  const store = new Store(outDir)
+  let serverKey = config.serverKey ?? ''
+  let outDir = path.resolve(config.outDir ?? DEFAULTS.outDir)
+  let store = new Store(outDir)
+  const token = config.token ?? ''
+  const keyStore = config.keyStore ?? null
   const jobs = new Map()
   const statsCache = new Map()
   const categoryCache = new Map()
@@ -157,6 +163,8 @@ export function createApp(config = {}) {
       /^\/api\/config$/,
       () => ({
         serverKey: Boolean(serverKey),
+        desktop: Boolean(token),
+        canRememberKey: Boolean(keyStore),
         outDir,
         defaults: { max: DEFAULTS.max, concurrency: DEFAULTS.concurrency, pageSize: DEFAULTS.pageSize },
         adultAge: ADULT_AGE,
@@ -166,6 +174,28 @@ export function createApp(config = {}) {
       }),
     ],
     ['POST', /^\/api\/check$/, (_req, _m, body) => check(body)],
+    [
+      'POST',
+      /^\/api\/key\/save$/,
+      async (_req, _m, body) => {
+        if (!keyStore) throw httpError(404, 'Remembering the key is only available in the desktop app.')
+        const key = String(body?.key ?? '').trim()
+        if (!key) throw httpError(400, 'Paste an API key first.')
+        await keyStore.save(key)
+        serverKey = key
+        return { ok: true }
+      },
+    ],
+    [
+      'POST',
+      /^\/api\/key\/forget$/,
+      async () => {
+        if (!keyStore) throw httpError(404, 'Remembering the key is only available in the desktop app.')
+        await keyStore.clear()
+        serverKey = ''
+        return { ok: true }
+      },
+    ],
     ['POST', /^\/api\/categories$/, (_req, _m, body) => categories(body)],
     [
       'POST',
@@ -221,6 +251,11 @@ export function createApp(config = {}) {
     const url = new URL(req.url, 'http://localhost')
     const { pathname } = url
     if (!allowedRequest(req)) return sendJson(res, 403, { error: 'Cross-site requests are not allowed.' })
+    // Desktop app: the port is reachable by any local program, so the API also
+    // wants the secret the app's own window was given at launch.
+    if (token && pathname.startsWith('/api/') && cookieValue(req, 'cpp_token') !== token) {
+      return sendJson(res, 403, { error: 'This app only answers its own window.' })
+    }
 
     try {
       let m = pathname.match(/^\/api\/jobs\/(\w+)\/events$/)
@@ -296,12 +331,17 @@ export function createApp(config = {}) {
 
   async function sendPicture(cc, name, res) {
     if (!PICTURE_RE.test(name)) throw httpError(400, 'Bad file name.')
-    const file = store.picturePath(`${cc}/${name}`)
-    try {
-      await stat(file)
-    } catch {
-      throw httpError(404, 'No such picture.')
+    // The current folder first, then the folders of downloads started before a folder change.
+    const stores = [store, ...[...jobs.values()].map((e) => e.job.store)]
+    let file = null
+    for (const s of stores) {
+      const candidate = s.picturePath(`${cc}/${name}`)
+      if (await stat(candidate).then(() => true, () => false)) {
+        file = candidate
+        break
+      }
     }
+    if (!file) throw httpError(404, 'No such picture.')
     res.writeHead(200, { 'content-type': 'image/jpeg', 'cache-control': 'private, max-age=3600' })
     createReadStream(file).pipe(res)
   }
@@ -331,7 +371,30 @@ export function createApp(config = {}) {
     }
   }
 
-  return { handle, jobs, store }
+  return {
+    handle,
+    jobs,
+    get store() {
+      return store
+    },
+    get outDir() {
+      return outDir
+    },
+    /** Desktop app: save new downloads somewhere else. Running downloads keep their folder. */
+    setOutDir(dir) {
+      outDir = path.resolve(dir)
+      store = new Store(outDir)
+      return outDir
+    },
+  }
+}
+
+function cookieValue(req, name) {
+  for (const part of String(req.headers.cookie ?? '').split(';')) {
+    const [k, ...v] = part.trim().split('=')
+    if (k === name) return v.join('=')
+  }
+  return null
 }
 
 /**

@@ -1,26 +1,27 @@
 {
   "name": "country-profile-pics",
   "version": "1.0.0",
-  "description": "Download every stored profile picture matching your filters from the WP Data API, with a CSV of every field. Resumable, cursor-based, never downloads twice.",
+  "description": "Desktop app and CLI that download every stored profile picture matching your filters from the WP Data API, with a CSV of every field. Resumable, cursor-based, never downloads twice.",
   "type": "module",
   "bin": {
     "country-profile-pics": "src/cli.js"
   },
-  "main": "src/job.js",
+  "main": "electron/main.js",
   "exports": {
     ".": "./src/job.js",
     "./api": "./src/api.js"
   },
-  "files": [
-    "src",
-    "public",
-    "README.md",
-    "LICENSE"
-  ],
   "scripts": {
+    "app": "electron .",
     "start": "node src/server.js",
     "cli": "node src/cli.js",
-    "test": "node --test \"test/*.test.js\""
+    "test": "node --test \"test/*.test.js\"",
+    "icons": "node scripts/make-icons.mjs",
+    "smoke": "electron . --smoke=smoke.json",
+    "dist": "electron-builder --publish never",
+    "dist:win": "electron-builder --win --publish never",
+    "dist:mac": "electron-builder --mac --publish never",
+    "dist:linux": "electron-builder --linux --publish never"
   },
   "engines": {
     "node": ">=22"
@@ -37,6 +38,105 @@
     "wp-data"
   ],
   "license": "MIT",
-  "author": "Eduardo Airaudo",
-  "homepage": "https://lookup.checkleaked.cc"
+  "author": {
+    "name": "Eduardo Airaudo",
+    "url": "https://github.com/eduair94"
+  },
+  "homepage": "https://github.com/eduair94/country-profile-pics#readme",
+  "devDependencies": {
+    "@resvg/resvg-js": "2.6.2",
+    "electron": "45.2.0",
+    "electron-builder": "26.18.1"
+  },
+  "productName": "Country Profile Pictures",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/eduair94/country-profile-pics.git"
+  },
+  "bugs": {
+    "url": "https://github.com/eduair94/country-profile-pics/issues"
+  },
+  "build": {
+    "appId": "io.github.eduair94.countryprofilepics",
+    "productName": "Country Profile Pictures",
+    "copyright": "Copyright © 2026 Eduardo Airaudo",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "electron/**",
+      "src/**",
+      "public/**",
+      "build/icon.png",
+      "package.json",
+      "LICENSE"
+    ],
+    "asar": true,
+    "afterPack": "./build/after-pack.cjs",
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "artifactName": "country-profile-pics-windows-setup.${ext}"
+    },
+    "portable": {
+      "artifactName": "country-profile-pics-windows-portable.${ext}"
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        }
+      ],
+      "category": "public.app-category.utilities",
+      "icon": "build/icon.png",
+      "artifactName": "country-profile-pics-mac-${arch}.${ext}"
+    },
+    "linux": {
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "category": "Utility",
+      "icon": "build/icon.png",
+      "artifactName": "country-profile-pics-linux-x64.${ext}"
+    },
+    "publish": null,
+    "electronFuses": {
+      "runAsNode": false,
+      "enableCookieEncryption": true,
+      "enableNodeOptionsEnvironmentVariable": false,
+      "enableNodeCliInspectArguments": false,
+      "enableEmbeddedAsarIntegrityValidation": true,
+      "onlyLoadAppFromAsar": true,
+      "grantFileProtocolExtraPrivileges": false,
+      "resetAdHocDarwinSignature": true
+    }
+  }
 }

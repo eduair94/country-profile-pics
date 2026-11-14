@@ -329,3 +329,11 @@ input[type='radio'], input[type='checkbox'] { accent-color: var(--violet); width
 .run-item .state { font-weight: 700; color: var(--ink); }
 .run-item .state.done { color: var(--saved); }
 @media (max-width: 640px) { .run-item { grid-template-columns: 1fr; } .run-item .run-buttons { justify-content: flex-start; } }
+
+/* ── Desktop app bits ─────────────────────────────────────── */
+.path { margin: 0; font-size: 0.88rem; color: var(--ink-soft); }
+.path code { font-family: Consolas, 'SF Mono', monospace; color: var(--ink); overflow-wrap: anywhere; }
+.folder-buttons { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+.folder-buttons .btn { min-height: 36px; padding: 8px 12px; font-size: 0.9rem; }
+.linkish { font: inherit; color: var(--violet); background: none; border: 0; padding: 0; text-decoration: underline; cursor: pointer; }
+#remember-wrap { margin-top: 10px; }

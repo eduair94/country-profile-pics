@@ -1,9 +1,25 @@
-# country-profile-pics
+# Country Profile Pictures
 
 Download every stored profile picture that matches your filters from the
 **WP Data API**, for one country or all of them, together with a CSV of
-every field the API returns. It comes with a local web app and a command line,
-and it never downloads the same picture twice.
+every field the API returns. A desktop app for Windows, macOS and Linux, plus a
+command line, and it never downloads the same picture twice.
+
+## Download
+
+| System | |
+| --- | --- |
+| Windows | [Installer](https://github.com/eduair94/country-profile-pics/releases/latest/download/country-profile-pics-windows-setup.exe) · [Portable, no install](https://github.com/eduair94/country-profile-pics/releases/latest/download/country-profile-pics-windows-portable.exe) |
+| macOS | [Apple Silicon (M1–M4)](https://github.com/eduair94/country-profile-pics/releases/latest/download/country-profile-pics-mac-arm64.dmg) · [Intel](https://github.com/eduair94/country-profile-pics/releases/latest/download/country-profile-pics-mac-x64.dmg) |
+| Linux | [AppImage](https://github.com/eduair94/country-profile-pics/releases/latest/download/country-profile-pics-linux-x64.AppImage) |
+
+All files and checksums: [latest release](https://github.com/eduair94/country-profile-pics/releases/latest).
+
+The builds are not code-signed yet. On **Windows**, if you see "Windows
+protected your PC", click **More info → Run anyway**. On **macOS**, right-click
+the app → **Open**, then **Open** again (if it says the app is damaged, run
+`xattr -cr "/Applications/Country Profile Pictures.app"` once). On **Linux**,
+`chmod +x` the AppImage and run it.
 
 - **Same filters as the website's database search**: account type, text,
   number prefix, business website, email, address and categories, first/last
@@ -18,10 +34,12 @@ and it never downloads the same picture twice.
 - **CSV and ZIP export** with every field, flattened to columns, plus where each
   picture is on disk.
 
+Or run it from source:
+
 ```
 npm install
-cp .env.example .env      # put your key in WA_API_KEY
-npm start                 # → http://localhost:4747
+npm run app               # desktop app
+npm start                 # same app in your browser → http://localhost:4747
 ```
 
 ## Getting a key
@@ -36,12 +54,12 @@ Either kind works. The app detects which one you pasted.
 The key needs access to profile data (`urlImage`), which direct keys and the
 **DB Only** listing have.
 
-## Web app
-
-`npm start` serves the app on `http://localhost:4747`, on this computer only.
+## Desktop app
 
 1. Paste your key and press **Check key**. You'll see its remaining requests
-   and how many pictures each country has.
+   and how many pictures each country has. Keep **Remember this key** ticked to
+   store it encrypted by the operating system (Keychain on macOS, DPAPI on
+   Windows, the Secret Service on Linux); **Forget it** removes it.
 2. Pick a country (or **All countries**) and any filters.
 3. Choose **The newest N pictures** or **All of them**, then press
    **Download pictures**.
@@ -50,7 +68,16 @@ The key needs access to profile data (`urlImage`), which direct keys and the
 5. **Earlier runs** lists everything you have downloaded. **Continue** picks up
    an unfinished run, **Check for new** updates a finished one.
 
+Pictures go to *Documents/Country Profile Pictures* unless you pick another
+folder under **Save to**. Closing the app stops downloads cleanly; the next run
+continues where it stopped.
+
+## In your browser
+
+`npm start` serves the same app on `http://localhost:4747`, on this computer only.
 Set `WA_API_KEY` in `.env` to skip pasting the key.
+
+It works exactly like the desktop app, except that the key is not remembered.
 
 ## Command line
 
@@ -233,7 +260,12 @@ are spread thinly across the whole country.
 
 ## Security
 
-- The web app listens on `127.0.0.1` only. It refuses requests whose `Host` is
+- The desktop app runs its own copy of the server on a random `127.0.0.1` port
+  and gives its window a secret at launch; the API refuses any request without
+  it, so no other program on the computer can use the app to spend your key.
+  The packaged app also ignores `ELECTRON_RUN_AS_NODE`, `NODE_OPTIONS` and
+  debugger flags, and only loads its own integrity-checked code (Electron fuses).
+- The browser version listens on `127.0.0.1` only. It refuses requests whose `Host` is
   not local (DNS rebinding) and cross-site requests from other tabs, including
   image and link requests (`Sec-Fetch-Site`).
 - Your key is kept in memory and sent only to the API. It is never written to
@@ -262,7 +294,15 @@ Meta Platforms, Inc.
 
 ```
 npm test                  # node:test, no network
+npm run app               # desktop app from source
+npm run smoke             # launch the desktop app once and exit (writes smoke.json)
+npm run dist:win          # build installers into dist/ (also dist:mac, dist:linux)
+npm run icons             # re-render build/icon.png from build/icon.svg
 ```
+
+Releases: push a tag such as `v1.0.1`. GitHub Actions tests and builds on
+Windows, macOS and Linux, launches each packaged app once, and uploads the files
+and `SHA256SUMS.txt` to a draft release, which is then published by hand.
 
 Node 22 or newer. The only dependency is [yazl](https://github.com/thejoshwolfe/yazl)
 for ZIP files. The tests run against an in-memory fake of the API and the CDN.
@@ -279,7 +319,8 @@ server's guards.
 | `src/job.js` | A download run: walk, download, dedupe, checkpoint |
 | `src/store.js` | On-disk layout, ledger, run state, locks |
 | `src/export.js` | CSV and ZIP exports |
-| `src/cli.js`, `src/server.js`, `public/` | Command line and web app |
+| `src/cli.js`, `src/server.js`, `public/` | Command line, local server and the app's page |
+| `electron/` | Desktop app: window, encrypted key, folder picker |
 
 ## License
 

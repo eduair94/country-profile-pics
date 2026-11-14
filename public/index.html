@@ -28,7 +28,9 @@
             <button type="button" class="btn quiet" id="check">Check key</button>
           </div>
           <p class="hint" id="key-hint">A website key, or a RapidAPI key subscribed to WP Data DB Only. It stays on this computer.</p>
+          <label class="check small" id="remember-wrap" hidden><input type="checkbox" id="remember" checked> Remember this key on this computer (encrypted by the system)</label>
           <p class="status" id="key-status" role="status" hidden></p>
+          <p class="status ok" id="saved-key" hidden>Using your saved key. <button type="button" class="linkish" id="forget">Forget it</button></p>
           <details class="sub">
             <summary>Connection</summary>
             <label class="field" for="transport">Send the key to
@@ -150,6 +152,15 @@
           </div>
         </section>
 
+        <section class="block" aria-labelledby="folder-title">
+          <h2 id="folder-title">Save to</h2>
+          <p class="path"><code id="out-dir"></code></p>
+          <div class="folder-buttons" id="folder-buttons" hidden>
+            <button type="button" class="btn quiet" id="choose-folder">Change…</button>
+            <button type="button" class="btn quiet" id="open-out-dir">Open folder</button>
+          </div>
+        </section>
+
         <details class="block more">
           <summary>More options</summary>
           <label class="check"><input type="checkbox" name="dedupe" checked> Skip identical pictures (link them to the copy already saved)</label>
@@ -210,6 +221,7 @@
             <a class="btn primary" id="csv" href="#" aria-disabled="true">Download CSV</a>
             <a class="btn quiet" id="zip" href="#" aria-disabled="true">Download ZIP</a>
             <button type="button" class="btn quiet" id="cancel" hidden>Stop</button>
+            <button type="button" class="btn quiet" id="open-folder" hidden>Open folder</button>
             <p class="folder" id="folder" hidden>Pictures are saved in <code id="folder-path"></code></p>
           </div>
 

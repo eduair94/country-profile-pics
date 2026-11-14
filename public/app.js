@@ -147,6 +147,14 @@ async function checkKey({ quiet = false } = {}) {
     show(status, text, 'ok')
     populateCountries()
     updateEstimate()
+    // Desktop app: keep a key that works, encrypted by the operating system.
+    const typed = $('key').value.trim()
+    if (typed && state.config.canRememberKey && $('remember').checked) {
+      await api('POST', '/api/key/save', { key: typed })
+      state.config.serverKey = true
+      $('key').value = ''
+      renderKeyState()
+    }
   } catch (err) {
     show(status, err.message, 'error')
   } finally {
@@ -501,15 +509,55 @@ async function loadRuns() {
 
 /* ── Wiring ────────────────────────────────────────────────── */
 
+/** Key field, hint and "saved key" notice, for the web and the desktop app. */
+function renderKeyState() {
+  const { serverKey, canRememberKey } = state.config
+  $('saved-key').hidden = !(serverKey && canRememberKey)
+  $('remember-wrap').hidden = !canRememberKey || serverKey
+  if (serverKey) {
+    $('key').placeholder = canRememberKey ? 'Using your saved key' : 'Using the server’s key'
+    $('key-hint').textContent = canRememberKey
+      ? 'Paste a different key to use it instead.'
+      : 'WA_API_KEY is set where this app runs. Paste a different key to use that one instead.'
+  } else {
+    $('key').placeholder = 'wapi_… or your RapidAPI key'
+    $('key-hint').textContent =
+      'A website key, or a RapidAPI key subscribed to WP Data DB Only. It stays on this computer.'
+  }
+}
+
+function renderFolder(dir) {
+  state.config.outDir = dir
+  $('out-dir').textContent = dir
+}
+
 async function init() {
   state.config = await api('GET', '/api/config')
   populateCountries()
+  renderKeyState()
+  renderFolder(state.config.outDir)
+  if (state.config.serverKey) checkKey({ quiet: true })
 
-  if (state.config.serverKey) {
-    $('key').placeholder = 'Using the server’s key'
-    $('key-hint').textContent = 'WA_API_KEY is set where this app runs. Paste a different key to use that one instead.'
-    checkKey({ quiet: true })
+  const desktop = window.desktop
+  if (desktop) {
+    $('folder-buttons').hidden = false
+    $('open-folder').hidden = false
+    $('choose-folder').addEventListener('click', async () => {
+      const dir = await desktop.chooseFolder()
+      if (dir) renderFolder(dir)
+    })
+    for (const id of ['open-out-dir', 'open-folder']) $(id).addEventListener('click', () => desktop.openFolder())
+    desktop.onFolderChanged((dir) => {
+      renderFolder(dir)
+      loadRuns()
+    })
   }
+  $('forget').addEventListener('click', async () => {
+    await api('POST', '/api/key/forget')
+    state.config.serverKey = false
+    show($('key-status'), '')
+    renderKeyState()
+  })
 
   $('check').addEventListener('click', () => checkKey())
   $('key').addEventListener('keydown', (e) => {

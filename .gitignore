@@ -6,3 +6,5 @@ downloads/
 !.env.example
 *.part
 .DS_Store
+dist/
+smoke.json
