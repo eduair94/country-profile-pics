@@ -15,4 +15,4 @@ const fetch = async (url, init) => {
   return base.fetch(url, init)
 }
 const job = new DownloadJob({ key: KEY, country: 'UY', outDir: out, max: 0, pageSize: 10, concurrency: 3 }, { fetch })
-job.run()
+void job.run()

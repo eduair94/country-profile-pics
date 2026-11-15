@@ -76,6 +76,22 @@ export function formatDuration(ms) {
 }
 
 /** Strip anything that looks like an API key from a string before it is shown. */
+/**
+ * Sort comparator for strings by UTF-16 code unit: exactly what a bare
+ * `.sort()` does, written out. Locale-independent on purpose, because run
+ * names and column orders must not change with the computer's language.
+ */
+export const byCodeUnit = (a, b) => (a < b ? -1 : a > b ? 1 : 0)
+
+/** Removes every leading and trailing `ch` (a linear scan, no regular expression). */
+export function trimChar(text, ch) {
+  let start = 0
+  let end = text.length
+  while (start < end && text[start] === ch) start++
+  while (end > start && text[end - 1] === ch) end--
+  return text.slice(start, end)
+}
+
 export function redact(text, key) {
   let out = String(text ?? '')
   if (key) out = out.split(key).join('<key>')

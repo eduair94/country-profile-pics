@@ -11,6 +11,7 @@
  *   - an age ceiling under 18: a filter that singles out children is refused.
  */
 import { createHash } from 'node:crypto'
+import { byCodeUnit, trimChar } from './util.js'
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/
 const MAX_TEXT = 200
@@ -169,7 +170,7 @@ export function toQuery(f) {
 
 /** Stable identity of a filter set, independent of key order. */
 export function filtersHash(f) {
-  const canonical = JSON.stringify(Object.keys(f).sort().map((k) => [k, f[k]]))
+  const canonical = JSON.stringify(Object.keys(f).sort(byCodeUnit).map((k) => [k, f[k]]))
   return createHash('sha256').update(canonical).digest('hex').slice(0, 8)
 }
 
@@ -184,14 +185,13 @@ export function runSlug(f) {
   if (f.categories) tokens.push(f.categories[0])
   if (f.faceGender) tokens.push(f.faceGender)
   if (f.dateFrom || f.dateTo) tokens.push(`${f.dateFrom ?? 'start'}_${f.dateTo ?? 'now'}`)
-  const words = tokens
+  const joined = tokens
     .join('-')
     .toLowerCase()
     .normalize('NFKD')
     .replace(/[^a-z0-9_]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .slice(0, 40)
-    .replace(/-+$/g, '')
+  // Trim the dashes, cut to 40, trim again (the cut may end on a dash).
+  const words = trimChar(trimChar(joined, '-').slice(0, 40), '-')
   return [base, words, filtersHash(f)].filter(Boolean).join('-')
 }
 

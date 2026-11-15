@@ -416,7 +416,7 @@ export class DownloadJob extends EventEmitter {
     this.stats.totals = totals
     // Never move the "newest seen" mark down: that number may since have been hidden.
     const candidates = [state.newestId, topOfThisWalk].filter(Boolean)
-    const newestId = candidates.length ? candidates.reduce((a, b) => (compareIds(a, b) >= 0 ? a : b)) : null
+    const newestId = candidates.reduce((a, b) => (a !== null && compareIds(a, b) >= 0 ? a : b), null)
     await this.store.saveRun(this.slug, {
       filters: state.filters,
       description: state.description,
@@ -610,7 +610,8 @@ export class DownloadJob extends EventEmitter {
     const [heir, ...others] = links
     const from = this.store.picturePath(relPath)
     const buf = await readFile(from)
-    const md5 = createHash('md5').update(buf).digest('hex')
+    // md5 is the ledger's content fingerprint for spotting identical files, not a security control.
+    const md5 = createHash('md5').update(buf).digest('hex') // NOSONAR
     await this.store.ensureCountry(heir.country)
     await copyFile(from, this.store.picturePath(heir.file))
     const now = new Date().toISOString()

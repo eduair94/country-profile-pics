@@ -28,6 +28,13 @@ export const TRANSPORTS = Object.freeze({
 })
 
 /** RapidAPI application keys look like `<hex>msh<hex>p<hex>jsn<hex>`. */
+/** `text` without trailing `ch` characters. */
+function trimEnd(text, ch) {
+  let end = text.length
+  while (end > 0 && text[end - 1] === ch) end--
+  return text.slice(0, end)
+}
+
 export function detectTransport(key) {
   return /^[0-9a-f]+msh[0-9a-f]+p[0-9a-f]+jsn[0-9a-f]+$/i.test(String(key ?? '').trim())
     ? 'rapidapi'
@@ -185,7 +192,7 @@ export function createClient({
   if (!apiKey) throw new ApiError('An API key is required.', { code: 'NO_KEY' })
   const name = resolveTransport(transport, apiKey)
   const spec = TRANSPORTS[name]
-  const root = (baseUrl ?? spec.baseUrl).replace(/\/+$/, '')
+  const root = trimEnd(baseUrl ?? spec.baseUrl, '/')
   const headers = { accept: 'application/json', 'user-agent': userAgent, ...spec.headers(apiKey) }
   const spacing = Number.isFinite(Number(minIntervalMs)) ? Math.max(0, Number(minIntervalMs)) : 550
 

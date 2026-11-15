@@ -16,6 +16,7 @@ import path from 'node:path'
 import { once } from 'node:events'
 import yazl from 'yazl'
 import { fileExists, readLines, renameRetry } from './store.js'
+import { byCodeUnit } from './util.js'
 
 const LEAD_COLUMNS = [
   'country',
@@ -99,7 +100,7 @@ async function pictureMap(store, cc, numbers) {
 
 class Writer {
   constructor(file) {
-    this.stream = createWriteStream(file)
+    this.stream = createWriteStream(file) // NOSONAR: writes inside the output folder the user chose
   }
   async write(text) {
     if (!this.stream.write(text)) await once(this.stream, 'drain')
@@ -116,7 +117,7 @@ class Writer {
  */
 export async function writeRunCsv(store, slug, outFile, { onProgress } = {}) {
   const numbersByCountry = await readRunNumbers(store, slug)
-  const countries = [...numbersByCountry.keys()].sort()
+  const countries = [...numbersByCountry.keys()].sort(byCodeUnit)
 
   // Pass 1: newest record line per number, and the union of all fields.
   const latest = new Map()
@@ -145,7 +146,7 @@ export async function writeRunCsv(store, slug, outFile, { onProgress } = {}) {
   for (const k of SKIP_FIELDS) fields.delete(k)
   const recordColumns = [
     ...LEAD_RECORD_FIELDS.filter((f) => fields.has(f)),
-    ...[...fields].filter((f) => !LEAD_RECORD_FIELDS.includes(f)).sort(),
+    ...[...fields].filter((f) => !LEAD_RECORD_FIELDS.includes(f)).sort(byCodeUnit),
   ]
   const columns = [...LEAD_COLUMNS, ...recordColumns]
 
@@ -244,7 +245,7 @@ export async function runPictureFiles(store, slug) {
       for (const r of entry.history.values()) files.add(locationOf(r))
     }
   }
-  return [...files].sort()
+  return [...files].sort(byCodeUnit)
 }
 
 /**

@@ -125,7 +125,7 @@ export class Store {
 
   async loadRun(slug) {
     try {
-      const state = JSON.parse(await readFile(this.runFile(slug), 'utf8'))
+      const state = JSON.parse(await readFile(this.runFile(slug), 'utf8')) // NOSONAR: inside the output folder the user chose
       return state?.version === STATE_VERSION ? state : null
     } catch (err) {
       if (err.code === 'ENOENT') return null
@@ -143,7 +143,7 @@ export class Store {
   async listRuns() {
     let names = []
     try {
-      names = await readdir(path.join(this.root, 'runs'))
+      names = await readdir(path.join(this.root, 'runs')) // NOSONAR: inside the output folder the user chose
     } catch {
       return []
     }
@@ -333,7 +333,7 @@ export class Store {
 export async function renameRetry(from, to, attempts = 6) {
   for (let i = 0; ; i++) {
     try {
-      return await rename(from, to)
+      return await rename(from, to) // NOSONAR: both paths are inside the output folder the user chose
     } catch (err) {
       if (i >= attempts - 1 || !['EPERM', 'EBUSY', 'EACCES'].includes(err.code)) throw err
       await new Promise((r) => setTimeout(r, 50 * 2 ** i))

@@ -5,9 +5,9 @@ import { spawn } from 'node:child_process'
 import { existsSync, readFileSync, rmSync } from 'node:fs'
 import path from 'node:path'
 
-const exe = process.argv[2]
+const exe = process.argv[2] ? path.resolve(process.argv[2]) : ''
 if (!exe || !existsSync(exe)) {
-  console.error(`smoke: app not found: ${exe}`)
+  console.error(`smoke: app not found: ${process.argv[2]}`)
   process.exit(1)
 }
 const out = path.resolve('smoke.json')
@@ -18,7 +18,7 @@ const [cmd, args] = linux
   ? ['xvfb-run', ['--auto-servernum', exe, '--no-sandbox', `--smoke=${out}`]]
   : [exe, [`--smoke=${out}`]]
 
-const child = spawn(cmd, args, { stdio: 'inherit' })
+const child = spawn(cmd, args, { stdio: 'inherit' }) // NOSONAR: launches the packaged app the caller names, by design
 const timer = setTimeout(() => {
   console.error('smoke: no answer within 120 s')
   child.kill('SIGKILL')

@@ -71,7 +71,8 @@ export async function downloadImage(url, dest, options = {}) {
         continue
       }
       await writeFile(tmp, buf)
-      fetched = { bytes: buf.length, md5: createHash('md5').update(buf).digest('hex') }
+      // md5 is the ledger's content fingerprint for spotting identical files, not a security control.
+      fetched = { bytes: buf.length, md5: createHash('md5').update(buf).digest('hex') } // NOSONAR
       break
     } catch (err) {
       await rm(tmp, { force: true }).catch(() => {})

@@ -310,7 +310,7 @@ async function writeExports(store, slug, args) {
   }
   if (args.zip) {
     const file = path.join(store.exportsDir(), `${slug}.zip`)
-    const r = await writeRunZip(store, slug, createWriteStream(file))
+    const r = await writeRunZip(store, slug, createWriteStream(file)) // NOSONAR: inside the output folder the user chose
     say(`ZIP: ${formatInt(r.pictures)} pictures + CSV (${formatInt(r.rows)} rows) → ${file}\n`)
     say(`CSV: ${path.join(store.exportsDir(), `${slug}.csv`)}\n`)
   }

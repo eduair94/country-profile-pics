@@ -18,7 +18,7 @@
  * longer public (404). Some businesses share one logo, so "identical
  * pictures" get linked exactly as they would be with real data.
  */
-import { createHash } from 'node:crypto'
+import { createHash, randomInt } from 'node:crypto'
 import { deflateSync } from 'node:zlib'
 
 export const DEMO_KEY = 'demo'
@@ -68,7 +68,8 @@ function rng(seed) {
   }
 }
 
-const md5 = (s) => createHash('md5').update(s).digest('hex')
+// A stand-in for the API's 32-hex-digit picture hash.
+const md5 = (s) => createHash('sha256').update(s).digest('hex').slice(0, 32)
 const pick = (r, list) => list[Math.floor(r() * list.length)]
 
 function makeDoc(ci, i) {
@@ -317,6 +318,14 @@ function sleep(ms, signal) {
 const yes = (v) => v === 'true'
 const has = (v) => v !== undefined && v !== null && v !== '' && !(Array.isArray(v) && !v.length)
 
+/** "https://www.Example.com/page" → "example.com" */
+function bareDomain(value) {
+  let d = value.trim().toLowerCase()
+  for (const prefix of ['https://', 'http://', 'www.']) if (d.startsWith(prefix)) d = d.slice(prefix.length)
+  const slash = d.indexOf('/')
+  return slash === -1 ? d : d.slice(0, slash)
+}
+
 function matches(doc, p) {
   const get = (k) => p.get(k) ?? undefined
   if (get('countryCode') && doc.countryCode !== get('countryCode')) return false
@@ -327,7 +336,7 @@ function matches(doc, p) {
     const text = [doc.about, b?.description, ...(b?.categories ?? []).map((c) => c.localized_display_name)].join(' ').toLowerCase()
     if (!get('search').toLowerCase().split(/\s+/).every((w) => text.includes(w))) return false
   }
-  if (get('domain') && doc.businessDomain !== get('domain').toLowerCase().replace(/^https?:\/\/|^www\.|\/.*$/g, '')) return false
+  if (get('domain') && doc.businessDomain !== bareDomain(get('domain'))) return false
   if (get('address') && !b?.address.toLowerCase().includes(get('address').toLowerCase())) return false
   if (get('email') && !b?.email.toLowerCase().includes(get('email').toLowerCase())) return false
   for (const [param, field] of [
@@ -398,7 +407,7 @@ export function createDemoFetch({ quota = 10_000, latency = true, toJpeg } = {})
 
   let remaining = quota
   let lastCall = 0
-  const wait = (min, max, signal) => (latency ? sleep(min + Math.random() * (max - min), signal) : signal?.throwIfAborted())
+  const wait = (min, max, signal) => (latency ? sleep(randomInt(min, max), signal) : signal?.throwIfAborted())
 
   const json = (status, body, extra = {}) =>
     new Response(JSON.stringify(body), {

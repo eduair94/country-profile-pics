@@ -120,7 +120,8 @@ export function createApp(config = {}) {
       broadcast('image', img)
     })
     job.on('done', (s) => broadcast('done', s))
-    job.run()
+    // run() records its own failures in the job; anything escaping it is a bug worth logging.
+    job.run().catch((err) => console.error(redact(String(err?.stack ?? err), key)))
     return entry
   }
 

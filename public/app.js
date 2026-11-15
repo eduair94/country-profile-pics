@@ -339,7 +339,7 @@ function attach(id) {
   $('sheet').replaceChildren()
   $('log').replaceChildren()
 
-  const es = new EventSource(`/api/jobs/${id}/events`)
+  const es = new EventSource(`/api/jobs/${encodeURIComponent(id)}/events`) // NOSONAR: id from our own server, encoded
   state.events = es
   es.addEventListener('hello', (e) => {
     const data = JSON.parse(e.data)
@@ -353,7 +353,7 @@ function attach(id) {
   es.addEventListener('done', (e) => {
     render(JSON.parse(e.data))
     es.close()
-    loadRuns()
+    void loadRuns()
   })
 }
 
@@ -491,7 +491,7 @@ async function loadRuns() {
     go.disabled = r.running
     go.addEventListener('click', () => {
       applyFilters(r.filters)
-      start()
+      void start()
     })
     const csv = document.createElement('a')
     csv.className = 'btn quiet'
@@ -536,7 +536,7 @@ async function init() {
   populateCountries()
   renderKeyState()
   renderFolder(state.config.outDir)
-  if (state.config.serverKey) checkKey({ quiet: true })
+  if (state.config.serverKey) void checkKey({ quiet: true })
 
   const desktop = window.desktop
   if (desktop) {
@@ -549,7 +549,7 @@ async function init() {
     for (const id of ['open-out-dir', 'open-folder']) $(id).addEventListener('click', () => desktop.openFolder())
     desktop.onFolderChanged((dir) => {
       renderFolder(dir)
-      loadRuns()
+      void loadRuns()
     })
   }
   $('forget').addEventListener('click', async () => {
@@ -563,7 +563,7 @@ async function init() {
   $('key').addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
       e.preventDefault()
-      checkKey()
+      void checkKey()
     }
   })
   $('country').addEventListener('change', updateEstimate)
@@ -604,7 +604,7 @@ async function init() {
     })
   }
 
-  loadRuns()
+  void loadRuns()
   const jobs = await api('GET', '/api/jobs')
   const current = jobs.find((j) => j.phase === 'running') ?? jobs.at(-1)
   if (current) attach(current.id)

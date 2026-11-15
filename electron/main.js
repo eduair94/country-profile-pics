@@ -341,7 +341,7 @@ app.on('before-quit', (event) => {
   // Stop downloads cleanly so their progress is saved, then quit.
   event.preventDefault()
   quitting = true
-  stopDownloads().then(() => app.quit())
+  void stopDownloads().then(() => app.quit())
 })
 
 app.on('window-all-closed', () => {
