@@ -48,6 +48,58 @@ jobs:
         run: sudo apt-get update -qq && sudo apt-get install -y -qq xvfb > /dev/null
       - name: Launch the packaged app once
         run: node scripts/smoke.mjs "${{ matrix.app }}"
+
+      # The files people download, installed and opened the way the user guide says.
+      - name: Installer and portable app (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $dir = "$env:LOCALAPPDATA\Programs\Country Profile Pictures"
+          Start-Process -Wait -FilePath dist\country-profile-pics-windows-setup.exe -ArgumentList '/S', '/currentuser'
+          node scripts/smoke.mjs "$dir\Country Profile Pictures.exe"
+          if ($LASTEXITCODE) { exit 1 }
+          Start-Process -Wait -FilePath "$dir\Uninstall Country Profile Pictures.exe" -ArgumentList '/S', '/currentuser'
+          Start-Sleep -Seconds 3
+          if (Test-Path "$dir\Country Profile Pictures.exe") { throw 'The uninstaller left the app behind.' }
+          node scripts/smoke.mjs dist\country-profile-pics-windows-portable.exe
+          if ($LASTEXITCODE) { exit 1 }
+      - name: Disk images, copied to Applications (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          app="/Applications/Country Profile Pictures.app"
+          for arch in arm64 x64; do
+            hdiutil attach -nobrowse -mountpoint /tmp/cpp-dmg "dist/country-profile-pics-mac-$arch.dmg" > /dev/null
+            rm -rf "$app" && cp -R "/tmp/cpp-dmg/Country Profile Pictures.app" /Applications/
+            hdiutil detach /tmp/cpp-dmg > /dev/null
+            codesign --verify --deep --strict "$app"
+            lipo -archs "$app/Contents/MacOS/Country Profile Pictures"
+            if [ "$arch" = arm64 ] || arch -x86_64 /usr/bin/true 2> /dev/null; then
+              node scripts/smoke.mjs "$app/Contents/MacOS/Country Profile Pictures"
+            else
+              echo "No Rosetta on this runner: the Intel app was checked but not launched."
+            fi
+          done
+      - name: The .deb, installed, with Chromium's sandbox on (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          echo "apparmor_restrict_unprivileged_userns=$(cat /proc/sys/kernel/apparmor_restrict_unprivileged_userns 2> /dev/null || echo n/a)"
+          sudo apt-get install -y -qq ./dist/country-profile-pics-linux-x64.deb > /dev/null
+          exe=$(dpkg -L country-profile-pics | grep -E '^/opt/.*/country-profile-pics$')
+          grep -hE '^(Name|Exec)=' /usr/share/applications/*.desktop | grep -i 'country' || { echo 'No menu entry was installed.'; exit 1; }
+          node scripts/smoke.mjs "$exe" --sandbox
+          sudo apt-get remove -y -qq country-profile-pics > /dev/null
+          ! test -e "$exe"
+      - name: The AppImage (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get install -y -qq libfuse2t64 > /dev/null
+          chmod +x dist/country-profile-pics-linux-x64.AppImage
+          node scripts/smoke.mjs dist/country-profile-pics-linux-x64.AppImage
+      - name: The AppImage with the sandbox on (Linux, for the guide's notes)
+        if: runner.os == 'Linux'
+        continue-on-error: true
+        run: node scripts/smoke.mjs dist/country-profile-pics-linux-x64.AppImage --sandbox
+
       - uses: actions/upload-artifact@v4
         with:
           name: dist-${{ runner.os }}
@@ -56,6 +108,7 @@ jobs:
             dist/*.exe
             dist/*.dmg
             dist/*.AppImage
+            dist/*.deb
 
   release:
     needs: build

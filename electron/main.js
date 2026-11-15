@@ -87,6 +87,19 @@ function keyStore(settings) {
   }
 }
 
+/**
+ * Whether the system can really protect a saved key. On Linux without a
+ * keyring (GNOME Keyring, KWallet), Electron falls back to a password built
+ * into every copy of Chromium, which protects nothing, so the app doesn't
+ * offer to remember the key there.
+ */
+async function keyProtection() {
+  if (!(await safeStorage.isAsyncEncryptionAvailable())) return null
+  if (process.platform !== 'linux') return 'system'
+  const backend = safeStorage.getSelectedStorageBackend?.() ?? 'unknown'
+  return ['basic_text', 'unknown'].includes(backend) ? null : backend
+}
+
 // ── The local server ───────────────────────────────────────────────────────
 
 /** Starts the local server for the current mode (real or demo) and hands its window the secret. */
@@ -96,7 +109,12 @@ async function startLocal() {
     screenshotsDir || (smokeFile && demo)
       ? await mkdtemp(path.join(os.tmpdir(), 'cpp-check-'))
       : settings.outDir || (demo ? path.join(DEMO_ROOT, 'downloads') : path.join(app.getPath('documents'), 'Country Profile Pictures'))
-  const keys = (await safeStorage.isAsyncEncryptionAvailable()) ? keyStore(settings) : null
+  const keys = (await keyProtection()) ? keyStore(settings) : null
+  if (!keys && settings.key) {
+    // Saved by an earlier version without real protection: don't keep it on disk.
+    delete settings.key
+    await saveSettings(settings)
+  }
   const token = randomBytes(32).toString('hex')
 
   local = createApp({
@@ -228,6 +246,7 @@ async function smokeTest() {
       return { title: document.title, desktop: typeof window.desktop, countries: document.querySelectorAll('#country option').length, config: { desktop: cfg.desktop, canRememberKey: cfg.canRememberKey } }
     })()`)
     result.windowTitle = win.getTitle()
+    result.keyProtection = await keyProtection()
     if (!demo) {
       await setDemo(true)
       result.demoTitle = win.getTitle()

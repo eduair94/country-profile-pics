@@ -1,6 +1,8 @@
 // Launch a packaged app once and check that its window came up with the app in it.
-//   node scripts/smoke.mjs "<path to the app executable>"
-// On Linux it runs under xvfb-run. Exits non-zero, with the reason, on any failure.
+//   node scripts/smoke.mjs "<path to the app executable>" [--sandbox]
+// On Linux it runs under xvfb-run, with Chromium's sandbox off unless --sandbox
+// is given (an installed .deb must start with it on). Exits non-zero, with the
+// reason, on any failure.
 import { spawn } from 'node:child_process'
 import { existsSync, readFileSync, rmSync } from 'node:fs'
 import path from 'node:path'
@@ -14,8 +16,9 @@ const out = path.resolve('smoke.json')
 rmSync(out, { force: true })
 
 const linux = process.platform === 'linux'
+const sandbox = process.argv.includes('--sandbox')
 const [cmd, args] = linux
-  ? ['xvfb-run', ['--auto-servernum', exe, '--no-sandbox', `--smoke=${out}`]]
+  ? ['xvfb-run', ['--auto-servernum', exe, ...(sandbox ? [] : ['--no-sandbox']), `--smoke=${out}`]]
   : [exe, [`--smoke=${out}`]]
 
 const child = spawn(cmd, args, { stdio: 'inherit' }) // NOSONAR: launches the packaged app the caller names, by design
@@ -43,7 +46,9 @@ child.on('exit', (code, signal) => {
     result.windowTitle === 'Country Profile Pictures' &&
     result.desktop === 'object' &&
     result.countries > 200 &&
-    result.config?.desktop === true
+    result.config?.desktop === true &&
+    // The key is only offered to be remembered where the system really protects it.
+    result.config?.canRememberKey === Boolean(result.keyProtection)
   if (!ok) {
     console.error('smoke: the window did not show the app as expected')
     process.exit(1)

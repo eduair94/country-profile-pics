@@ -1,6 +1,6 @@
 {
   "name": "country-profile-pics",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Desktop app and CLI that download every stored profile picture matching your filters from the WP Data API, with a CSV of every field. Resumable, cursor-based, never downloads twice.",
   "type": "module",
   "bin": {
@@ -125,10 +125,18 @@
           "arch": [
             "x64"
           ]
+        },
+        {
+          "target": "deb",
+          "arch": [
+            "x64"
+          ]
         }
       ],
       "category": "Utility",
       "icon": "build/icon.png",
+      "maintainer": "Eduardo Airaudo <eduair94@users.noreply.github.com>",
+      "synopsis": "Download the profile pictures of a country from the WP Data API",
       "artifactName": "country-profile-pics-linux-x64.${ext}"
     },
     "publish": null,
