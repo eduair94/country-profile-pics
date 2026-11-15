@@ -1,5 +1,5 @@
 // Launch a packaged app once and check that its window came up with the app in it.
-//   node scripts/smoke.mjs "<path to the app executable>" [--sandbox]
+//   node scripts/smoke.mjs "<path to the app executable>" [--sandbox] [--appimage-extract-and-run]
 // On Linux it runs under xvfb-run, with Chromium's sandbox off unless --sandbox
 // is given (an installed .deb must start with it on). Exits non-zero, with the
 // reason, on any failure.
@@ -17,8 +17,10 @@ rmSync(out, { force: true })
 
 const linux = process.platform === 'linux'
 const sandbox = process.argv.includes('--sandbox')
+// An AppImage only reads its own options as the first argument.
+const extract = process.argv.includes('--appimage-extract-and-run') ? ['--appimage-extract-and-run'] : []
 const [cmd, args] = linux
-  ? ['xvfb-run', ['--auto-servernum', exe, ...(sandbox ? [] : ['--no-sandbox']), `--smoke=${out}`]]
+  ? ['xvfb-run', ['--auto-servernum', exe, ...extract, ...(sandbox ? [] : ['--no-sandbox']), `--smoke=${out}`]]
   : [exe, [`--smoke=${out}`]]
 
 const child = spawn(cmd, args, { stdio: 'inherit' }) // NOSONAR: launches the packaged app the caller names, by design

@@ -11,19 +11,25 @@ command line, and it never downloads the same picture twice.
 | --- | --- |
 | Windows | [Installer](https://github.com/eduair94/country-profile-pics/releases/latest/download/country-profile-pics-windows-setup.exe) · [Portable, no install](https://github.com/eduair94/country-profile-pics/releases/latest/download/country-profile-pics-windows-portable.exe) |
 | macOS | [Apple Silicon (M1–M4)](https://github.com/eduair94/country-profile-pics/releases/latest/download/country-profile-pics-mac-arm64.dmg) · [Intel](https://github.com/eduair94/country-profile-pics/releases/latest/download/country-profile-pics-mac-x64.dmg) |
-| Linux | [AppImage](https://github.com/eduair94/country-profile-pics/releases/latest/download/country-profile-pics-linux-x64.AppImage) |
+| Linux | [.deb for Ubuntu, Debian, Mint](https://github.com/eduair94/country-profile-pics/releases/latest/download/country-profile-pics-linux-x64.deb) · [AppImage, any distribution](https://github.com/eduair94/country-profile-pics/releases/latest/download/country-profile-pics-linux-x64.AppImage) |
 
 All files and checksums: [latest release](https://github.com/eduair94/country-profile-pics/releases/latest). More about the app: [whatsapp.checkleaked.cc/desktop-app](https://whatsapp.checkleaked.cc/desktop-app).
 
-**First time?** Read the [Windows app guide](docs/GUIDE.md): installing, your key,
-filters, downloading and exporting, step by step with screenshots. To look around
+**First time?** Read the [user guide](docs/GUIDE.md): installing on Windows, macOS
+or Linux, your key, filters, downloading and exporting, step by step with
+screenshots. To look around
 without a key, open **Help → Try the Demo** in the app.
 
-The builds are not code-signed yet. On **Windows**, if you see "Windows
-protected your PC", click **More info → Run anyway**. On **macOS**, right-click
-the app → **Open**, then **Open** again (if it says the app is damaged, run
-`xattr -cr "/Applications/Country Profile Pictures.app"` once). On **Linux**,
-`chmod +x` the AppImage and run it.
+The builds are not code-signed yet, so each system asks once:
+
+- **Windows**: "Windows protected your PC" → **More info → Run anyway**.
+- **macOS 15 and later**: after the first try, **System Settings → Privacy &
+  Security → Open Anyway**. On macOS 14 and earlier, right-click the app →
+  **Open** → **Open**. If it says the app is damaged, run
+  `xattr -dr com.apple.quarantine "/Applications/Country Profile Pictures.app"` once.
+- **Linux**: `sudo apt install ./country-profile-pics-linux-x64.deb`, or
+  `chmod +x` the AppImage and run it (it needs FUSE 2, `libfuse2t64` on
+  Ubuntu 24.04).
 
 - **Same filters as the website's database search**: account type, text,
   number prefix, business website, email, address and categories, first/last
@@ -60,13 +66,14 @@ The key needs access to profile data (`urlImage`), which direct keys and the
 
 ## Desktop app
 
-The [Windows app guide](docs/GUIDE.md) covers every screen in detail (it applies to
-macOS and Linux too, once installed). In short:
+The [user guide](docs/GUIDE.md) covers installing on each system and every
+screen in detail. In short:
 
 1. Paste your key and press **Check key**. You'll see its remaining requests
    and how many pictures each country has. Keep **Remember this key** ticked to
    store it encrypted by the operating system (Keychain on macOS, DPAPI on
-   Windows, the Secret Service on Linux); **Forget it** removes it.
+   Windows, GNOME Keyring or KWallet on Linux; without a keyring the app
+   doesn't offer to remember it); **Forget it** removes it.
 2. Pick a country (or **All countries**) and any filters.
 3. Choose **The newest N pictures** or **All of them**, then press
    **Download pictures**.

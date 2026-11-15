@@ -63,22 +63,9 @@ jobs:
           if (Test-Path "$dir\Country Profile Pictures.exe") { throw 'The uninstaller left the app behind.' }
           node scripts/smoke.mjs dist\country-profile-pics-windows-portable.exe
           if ($LASTEXITCODE) { exit 1 }
-      - name: Disk images, copied to Applications (macOS)
+      - name: Apple silicon disk image, copied to Applications (macOS)
         if: runner.os == 'macOS'
-        run: |
-          app="/Applications/Country Profile Pictures.app"
-          for arch in arm64 x64; do
-            hdiutil attach -nobrowse -mountpoint /tmp/cpp-dmg "dist/country-profile-pics-mac-$arch.dmg" > /dev/null
-            rm -rf "$app" && cp -R "/tmp/cpp-dmg/Country Profile Pictures.app" /Applications/
-            hdiutil detach /tmp/cpp-dmg > /dev/null
-            codesign --verify --deep --strict "$app"
-            lipo -archs "$app/Contents/MacOS/Country Profile Pictures"
-            if [ "$arch" = arm64 ] || arch -x86_64 /usr/bin/true 2> /dev/null; then
-              node scripts/smoke.mjs "$app/Contents/MacOS/Country Profile Pictures"
-            else
-              echo "No Rosetta on this runner: the Intel app was checked but not launched."
-            fi
-          done
+        run: scripts/check-dmg.sh dist/country-profile-pics-mac-arm64.dmg arm64
       - name: The .deb, installed, with Chromium's sandbox on (Linux)
         if: runner.os == 'Linux'
         run: |
@@ -89,16 +76,14 @@ jobs:
           node scripts/smoke.mjs "$exe" --sandbox
           sudo apt-get remove -y -qq country-profile-pics > /dev/null
           ! test -e "$exe"
-      - name: The AppImage (Linux)
+      - name: The AppImage, and its no-FUSE fallback (Linux)
         if: runner.os == 'Linux'
         run: |
-          sudo apt-get install -y -qq libfuse2t64 > /dev/null
           chmod +x dist/country-profile-pics-linux-x64.AppImage
+          # The guide's way around a missing FUSE 2 (it needs no FUSE at all).
+          node scripts/smoke.mjs dist/country-profile-pics-linux-x64.AppImage --appimage-extract-and-run
+          sudo apt-get install -y -qq libfuse2t64 > /dev/null
           node scripts/smoke.mjs dist/country-profile-pics-linux-x64.AppImage
-      - name: The AppImage with the sandbox on (Linux, for the guide's notes)
-        if: runner.os == 'Linux'
-        continue-on-error: true
-        run: node scripts/smoke.mjs dist/country-profile-pics-linux-x64.AppImage --sandbox
 
       - uses: actions/upload-artifact@v4
         with:
@@ -110,8 +95,25 @@ jobs:
             dist/*.AppImage
             dist/*.deb
 
-  release:
+  # The Intel disk image, opened on an Intel Mac (Rosetta on the Apple silicon
+  # runner is too slow to start it reliably).
+  intel-mac:
     needs: build
+    runs-on: macos-15-intel
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist-macOS
+          path: dist
+      - name: Intel disk image, copied to Applications
+        run: scripts/check-dmg.sh dist/country-profile-pics-mac-x64.dmg x86_64
+
+  release:
+    needs: [build, intel-mac]
     # A manual run on a branch only builds and checks; releases come from tags.
     if: startsWith(github.ref, 'refs/tags/')
     permissions:

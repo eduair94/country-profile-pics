@@ -1,20 +1,24 @@
-# Windows app guide
+# User guide
 
-How to install **Country Profile Pictures** on Windows, download every profile
-picture that matches your filters for one country (or all of them), and export
-a CSV of every field. No programming needed. In the app, **Help → User Guide**
-opens this page.
+How to install **Country Profile Pictures** on Windows, macOS or Linux, download
+every profile picture that matches your filters for one country (or all of
+them), and export a CSV of every field. No programming needed. In the app,
+**Help → User Guide** opens this page.
+
+Installing: [Windows](#on-windows), [macOS](#on-macos), [Linux](#on-linux).
+After that, the app works the same everywhere.
 
 > Every screenshot here comes from the app's built-in **demo mode**: the numbers
 > are invented and the pictures are drawn by the app, so no real person appears
-> in this guide. You can try the same demo yourself, without a key
+> in this guide. They were taken on Windows; the app looks the same on macOS and
+> Linux. You can try the demo yourself, without a key
 > ([Try it without a key](#13-try-it-without-a-key)).
 
 **Contents**
 
 1. [What you need](#1-what-you-need)
 2. [Download](#2-download)
-3. [Install](#3-install)
+3. [Install](#3-install): [Windows](#on-windows), [macOS](#on-macos), [Linux](#on-linux)
 4. [Add your API key](#4-add-your-api-key)
 5. [Choose a country](#5-choose-a-country)
 6. [Filters (optional)](#6-filters-optional)
@@ -33,7 +37,16 @@ opens this page.
 
 ## 1. What you need
 
-- **Windows 10 or 11, 64-bit.**
+- **A computer** with one of:
+
+  | System | Versions |
+  | --- | --- |
+  | Windows | 10 or 11, 64-bit |
+  | macOS | 12 Monterey or later, on Apple silicon (M1 and later) or Intel |
+  | Linux | a 64-bit (x86-64) desktop: Ubuntu 22.04 or later, Debian 12, Linux Mint 21 or later, Fedora and others |
+
+  ARM Linux (a Raspberry Pi, for example) is not supported yet.
+
 - **An API key** for the WP Data API. Either kind works:
 
   | Key | Where to get it | Looks like |
@@ -50,14 +63,19 @@ opens this page.
 ## 2. Download
 
 Go to the [latest release](https://github.com/eduair94/country-profile-pics/releases/latest)
-and pick one of the two Windows files:
+and pick the file for your computer:
 
-| File | Choose it if |
-| --- | --- |
-| [country-profile-pics-windows-setup.exe](https://github.com/eduair94/country-profile-pics/releases/latest/download/country-profile-pics-windows-setup.exe) | You want a normal installed app with a Start menu entry, a desktop shortcut and an uninstaller. **Recommended.** |
-| [country-profile-pics-windows-portable.exe](https://github.com/eduair94/country-profile-pics/releases/latest/download/country-profile-pics-windows-portable.exe) | You don't want to install anything. Double-click it to run. It starts a little slower, because it unpacks itself each time. |
+| System | File | Choose it if |
+| --- | --- | --- |
+| Windows | [country-profile-pics-windows-setup.exe](https://github.com/eduair94/country-profile-pics/releases/latest/download/country-profile-pics-windows-setup.exe) | You want a normal installed app with a Start menu entry and an uninstaller. **Recommended.** |
+| Windows | [country-profile-pics-windows-portable.exe](https://github.com/eduair94/country-profile-pics/releases/latest/download/country-profile-pics-windows-portable.exe) | You don't want to install anything. It starts a little slower, because it unpacks itself each time. |
+| macOS | [country-profile-pics-mac-arm64.dmg](https://github.com/eduair94/country-profile-pics/releases/latest/download/country-profile-pics-mac-arm64.dmg) | Your Mac has Apple silicon (M1, M2, M3, M4…). |
+| macOS | [country-profile-pics-mac-x64.dmg](https://github.com/eduair94/country-profile-pics/releases/latest/download/country-profile-pics-mac-x64.dmg) | Your Mac has an Intel processor. |
+| Linux | [country-profile-pics-linux-x64.deb](https://github.com/eduair94/country-profile-pics/releases/latest/download/country-profile-pics-linux-x64.deb) | Ubuntu, Debian, Linux Mint, Pop!_OS and other Debian-based systems. **Recommended there.** |
+| Linux | [country-profile-pics-linux-x64.AppImage](https://github.com/eduair94/country-profile-pics/releases/latest/download/country-profile-pics-linux-x64.AppImage) | Any other distribution (Fedora, Arch, openSUSE…), or if you'd rather not install anything. |
 
-Both are the same app. Your key and folder choice are remembered either way.
+**Which Mac do I have?** Apple menu → **About This Mac**. It says *Chip: Apple M…*
+for Apple silicon, or *Processor: … Intel …* for Intel.
 
 **Your browser may warn you** that the file "isn't commonly downloaded". That's
 because the app is new and not code-signed. In Edge, open the download list,
@@ -66,18 +84,24 @@ click **…** next to the file → **Keep** (and, if it asks again, **Show more*
 
 ### Check the file (optional)
 
-The release also has `SHA256SUMS.txt`, with a fingerprint for every file. To
-make sure your download is complete and unmodified, open **PowerShell** in your
-Downloads folder and run:
+The release also has `SHA256SUMS.txt`, with a fingerprint for every file.
+Download it next to your file to make sure the download is complete and
+unmodified:
 
-```powershell
-Get-FileHash .\country-profile-pics-windows-setup.exe -Algorithm SHA256
-```
-
-The `Hash` it prints must match the line for that file in `SHA256SUMS.txt`
-(capital or small letters don't matter).
+- **Windows**: open **PowerShell** in your Downloads folder and run
+  `Get-FileHash .\country-profile-pics-windows-setup.exe -Algorithm SHA256`.
+  The `Hash` it prints must match that file's line in `SHA256SUMS.txt`
+  (capital or small letters don't matter).
+- **macOS**: open **Terminal** and run
+  `shasum -a 256 ~/Downloads/country-profile-pics-mac-arm64.dmg`
+  (or `-x64`), then compare with `SHA256SUMS.txt`.
+- **Linux**: in a terminal, run
+  `cd ~/Downloads && sha256sum --check --ignore-missing SHA256SUMS.txt`.
+  It prints `OK` next to each file you downloaded.
 
 ## 3. Install
+
+### On Windows
 
 1. Double-click `country-profile-pics-windows-setup.exe`.
 2. If Windows shows **"Windows protected your PC"**, click **More info**, then
@@ -93,6 +117,75 @@ From now on, open it from the Start menu or the desktop shortcut,
 
 With the portable file, skip all of this: double-click it (and pass the same
 SmartScreen warning the first time).
+
+### On macOS
+
+1. Double-click the `.dmg` you downloaded. In the window that opens, drag
+   **Country Profile Pictures** onto the **Applications** folder.
+2. Eject the disk image (the ⏏ button next to it in Finder's sidebar).
+3. Open **Applications** and double-click **Country Profile Pictures**.
+
+The first time, macOS stops it, because the app isn't notarized by Apple yet:
+
+- **macOS 15 Sequoia and later**: macOS says *"Country Profile Pictures" Not
+  Opened*. Click **Done**. Open **System Settings → Privacy & Security**, scroll
+  down to *"Country Profile Pictures" was blocked to protect your Mac*, click
+  **Open Anyway**, enter your password, and click **Open Anyway** once more.
+- **macOS 14 Sonoma and earlier**: Control-click (or right-click) the app in
+  Applications, choose **Open**, then click **Open** in the message.
+
+You only do this once. If macOS ever says the app **"is damaged and can't be
+opened"**, run this once in **Terminal**, then open it again:
+
+```sh
+xattr -dr com.apple.quarantine "/Applications/Country Profile Pictures.app"
+```
+
+Two more questions may come up, and both are safe to allow:
+
+- *"Country Profile Pictures" would like to access files in your Documents
+  folder*: that's where pictures are saved. Click **Allow**.
+- *Country Profile Pictures wants to use your confidential information stored in
+  "Country Profile Pictures Safe Storage" in your keychain*: that's your saved
+  API key. Click **Always Allow**. It can ask again after you update the app.
+
+On a Mac, the menus (**File**, **Help**…) are in the menu bar at the top of the
+screen.
+
+### On Linux
+
+**With the `.deb`** (Ubuntu, Debian, Mint…), open a terminal and run:
+
+```sh
+cd ~/Downloads
+sudo apt install ./country-profile-pics-linux-x64.deb
+```
+
+Then open **Country Profile Pictures** from your applications menu. The package
+also installs what Chromium's security sandbox needs on Ubuntu 24.04 and later.
+
+**With the AppImage**, run:
+
+```sh
+cd ~/Downloads
+chmod +x country-profile-pics-linux-x64.AppImage
+./country-profile-pics-linux-x64.AppImage
+```
+
+Or right-click the file → **Properties** → allow it to run as a program, then
+double-click it. Keep it somewhere permanent, such as `~/Applications`. AppImages
+need FUSE 2: if nothing happens, see [Troubleshooting](#14-troubleshooting).
+
+On Ubuntu 23.10 and later, the system doesn't let an AppImage use Chromium's
+security sandbox, so the AppImage turns it off by itself and starts anyway. The
+`.deb` installs a security profile that keeps the sandbox on, which is why it's
+the better choice on Ubuntu.
+
+The API key can be remembered only if your desktop has a keyring (GNOME Keyring
+or KWallet; Ubuntu, Mint, Fedora and KDE desktops have one). Without one, the
+app doesn't offer to remember it and you paste it each time you open the app.
+
+---
 
 When the app opens, it looks like this:
 
@@ -113,8 +206,9 @@ below (your own key shows its plan instead of *Demo*). A RapidAPI key just says
 country has.
 
 Leave **Remember this key on this computer (encrypted by the system)** ticked
-and you won't have to paste it again: Windows encrypts it for your user
-account. The box then says **Using your saved key**. To remove it, click
+and you won't have to paste it again. Your system encrypts it for your user
+account: Windows does it itself, macOS keeps it in your Keychain, and Linux in
+your keyring. The box then says **Using your saved key**. To remove it, click
 **Forget it**. To use a different key, paste it and click **Check key** again.
 
 ![Key accepted and saved, Uruguay chosen, with the estimate below it](images/02-key-and-country.png)
@@ -173,10 +267,11 @@ There is deliberately no ethnicity filter, and the age range can't end below
 **All of them**. Numbers come newest first, so a limit gives you the most
 recently added ones.
 
-**Save to**: pictures go to `Documents\Country Profile Pictures` unless you
-click **Change…** and pick another folder. **Open folder** opens it in File
-Explorer. The **File** menu has the same two commands. A download that is
-already running keeps saving to the folder it started in.
+**Save to**: pictures go to the **Country Profile Pictures** folder inside your
+**Documents** folder unless you click **Change…** and pick another one.
+**Open folder** opens it in File Explorer, Finder or your file manager. The
+**File** menu has the same two commands. A download that is already running
+keeps saving to the folder it started in.
 
 ## 8. More options
 
@@ -230,7 +325,10 @@ retries and pictures that failed.
 You can stop at any time and lose nothing:
 
 - **Stop** ends the run right away. Every picture already saved is kept.
-- **Closing the app** stops running downloads cleanly first.
+- **Quitting the app** stops running downloads cleanly first. On a Mac, closing
+  the window doesn't quit the app: downloads keep going in the background until
+  you quit with <kbd>⌘</kbd> <kbd>Q</kbd>, and clicking the Dock icon brings the
+  window back.
 - Even a crash or power cut loses nothing: every saved picture is already
   recorded, and the next run skips it.
 
@@ -253,14 +351,15 @@ The app recognises the run and continues it.
 
 When a run has finished (or been stopped), click **Download CSV** or
 **Download ZIP**, or the **CSV** / **ZIP** button next to a run under
-**Earlier runs**. Windows asks where to save the file.
+**Earlier runs**. The app asks where to save the file.
 
 - **CSV**: one row per number. It starts with `country`, `number`,
   `picture_file` (where the picture is on disk), `picture_shared` (`yes` when the
   number is linked to an identical picture), `picture_bytes`, `picture_md5` and
   `history_files`, followed by every field of the record: `about`, `isBusiness`,
   `date`, `businessProfile.email`, `businessProfile.address`, the picture
-  analysis and so on. It opens directly in Excel, accents included.
+  analysis and so on. It opens directly in Excel, Numbers or LibreOffice,
+  accents included.
 - **ZIP**: the same CSV plus the run's pictures, ready to send or archive.
 
 Exports are made from what's on disk, so they never cost a request. If a CSV
@@ -272,13 +371,13 @@ failing.
 Everything goes into the folder shown under **Save to**:
 
 ```
-Documents\Country Profile Pictures\
-  pictures\UY\598XXXXXXXX.jpg       a number's current picture
-  pictures\UY\598XXXXXXXX_2.jpg     an older picture ("Also download older pictures")
-  data\UY.jsonl                     every record the API returned
-  data\UY.files.csv                 list of every picture: size, fingerprint, links
-  runs\                             each run's position, filters and totals
-  exports\                          CSV and ZIP files the app made
+Country Profile Pictures/
+  pictures/UY/598XXXXXXXX.jpg       a number's current picture
+  pictures/UY/598XXXXXXXX_2.jpg     an older picture ("Also download older pictures")
+  data/UY.jsonl                     every record the API returned
+  data/UY.files.csv                 list of every picture: size, fingerprint, links
+  runs/                             each run's position, filters and totals
+  exports/                          CSV and ZIP files the app made
 ```
 
 Pictures are named by phone number, so you can find one directly. A number
@@ -287,6 +386,17 @@ points to the shared file.
 
 Don't edit the `data` and `runs` folders by hand. That is how the app knows
 what you already have.
+
+Where the app keeps things on each system:
+
+| | Pictures (unless you chose another folder) | Settings and your encrypted key |
+| --- | --- | --- |
+| Windows | `Documents\Country Profile Pictures` | `%APPDATA%\Country Profile Pictures` |
+| macOS | `~/Documents/Country Profile Pictures` | `~/Library/Application Support/Country Profile Pictures` |
+| Linux | `~/Documents/Country Profile Pictures` | `~/.config/Country Profile Pictures` |
+
+To open one of these folders: on Windows, paste the path into the File Explorer
+address bar; on a Mac, in Finder choose **Go → Go to Folder…** and paste it.
 
 ## 13. Try it without a key
 
@@ -306,9 +416,10 @@ running, the app asks first, then stops it with its progress saved.
 
 ## 14. Troubleshooting
 
+**Any system**
+
 | What you see | What to do |
 | --- | --- |
-| "Windows protected your PC" | Click **More info → Run anyway**. The app is not code-signed yet. |
 | "The API key was rejected (401)" or "(403)" | Check the key for missing characters. If it is a RapidAPI key, make sure it is subscribed to **WP Data DB Only**. Under **Connection**, try the other option. |
 | "The key has no requests left (429)" | Your key's quota is used up. Progress is saved; continue the run when the quota renews or with another key. |
 | "Rate limited (429)" in Activity | Requests came too close together. The app waits and retries by itself. If it keeps happening, raise **Gap between requests**. |
@@ -318,7 +429,29 @@ running, the app asks first, then stops it with its progress saved.
 | "A download with these filters is already running." | That run is already going, in this window or another copy of the app. Wait for it, or click **Stop**. |
 | It stopped saying the disk is almost full | Free some space, or click **Change…** to save to a bigger drive (the runs will then start fresh there). |
 | A country shows no picture count | Only the countries with the most numbers have counts. Downloading still works. |
+
+**Windows**
+
+| What you see | What to do |
+| --- | --- |
+| "Windows protected your PC" | Click **More info → Run anyway**. The app is not code-signed yet. |
 | The app doesn't open, or opens slowly | The portable file unpacks itself on every start, which can take a few seconds. Some antivirus programs scan it the first time; allow it, or use the installer. |
+
+**macOS**
+
+| What you see | What to do |
+| --- | --- |
+| *"Country Profile Pictures" Not Opened*, or *can't be opened because Apple cannot check it* | Allow it once, as in [Install on macOS](#on-macos). |
+| *"Country Profile Pictures" is damaged and can't be opened* | Run `xattr -dr com.apple.quarantine "/Applications/Country Profile Pictures.app"` in Terminal, then open it again. Nothing is wrong with the app: macOS says this about downloaded apps that aren't notarized. |
+| It asks for your keychain password | That's your saved API key. Enter your Mac's login password and click **Always Allow**. |
+| Downloads go on after closing the window | That's how Mac apps work. Quit with <kbd>⌘</kbd> <kbd>Q</kbd> to stop them (progress is saved). |
+
+**Linux**
+
+| What you see | What to do |
+| --- | --- |
+| The AppImage doesn't start, or says *AppImages require FUSE to run* (`dlopen(): error loading libfuse.so.2`) | Install FUSE 2: `sudo apt install libfuse2t64` on Ubuntu 24.04 and later, `sudo apt install libfuse2` on older Ubuntu and Debian, `sudo dnf install fuse-libs` on Fedora. Or start it with `./country-profile-pics-linux-x64.AppImage --appimage-extract-and-run`. |
+| No "Remember this key" box | Your desktop has no keyring. Install one (`sudo apt install gnome-keyring` on Ubuntu and Debian), log out and in, or paste the key each time. |
 
 Still stuck? [Open an issue](https://github.com/eduair94/country-profile-pics/issues)
 and copy what **Activity** shows. The app removes your key from it, but never
@@ -326,22 +459,24 @@ paste the key itself.
 
 ## 15. Update or uninstall
 
-**Update.** The app doesn't update itself. Download the newest
-`country-profile-pics-windows-setup.exe` from the
+The app doesn't update itself. To update, download the newest file from the
 [latest release](https://github.com/eduair94/country-profile-pics/releases/latest)
-and run it. It replaces the old version, and your key, folder and downloads
-stay as they are. For the portable version, just use the new file.
+and install it the same way as the first time. Your key, folder and downloads
+stay as they are.
 
-**Uninstall.** Open **Settings → Apps → Installed apps** (on Windows 10,
-**Settings → Apps → Apps & features**), find
-**Country Profile Pictures** and click **Uninstall**. Your downloaded pictures
-are **not** deleted. To remove everything:
+| | Update | Uninstall |
+| --- | --- | --- |
+| Windows installer | Run the new `country-profile-pics-windows-setup.exe`. It replaces the old version. | **Settings → Apps → Installed apps** (Windows 10: **Apps & features**) → **Country Profile Pictures** → **Uninstall**. |
+| Windows portable | Use the new file instead of the old one. | Delete the file. |
+| macOS | Drag the new app onto **Applications** and choose **Replace**. | Drag **Country Profile Pictures** from **Applications** to the Trash. |
+| Linux `.deb` | `sudo apt install ./country-profile-pics-linux-x64.deb` with the new file. | `sudo apt remove country-profile-pics` |
+| Linux AppImage | Use the new file instead of the old one. | Delete the file. |
 
-- delete your download folder (`Documents\Country Profile Pictures`, unless you
-  chose another one);
-- delete `%APPDATA%\Country Profile Pictures`, where the app keeps its settings
-  and your encrypted key. Paste that path into the File Explorer address bar to
-  open it.
+Uninstalling never deletes your pictures. To remove everything, also delete the
+two folders listed in [Where the files are](#12-where-the-files-are): your
+download folder, and the settings folder (which holds your encrypted key). On a
+Mac you can also delete *Country Profile Pictures Safe Storage* in the
+**Keychain Access** app.
 
 ## 16. Use it responsibly
 
@@ -357,11 +492,3 @@ Hidden numbers disappear from the API, and their pictures then show up as
 
 This project is not affiliated with, endorsed by or sponsored by WhatsApp LLC or
 Meta Platforms, Inc.
-
----
-
-**Using a Mac or Linux?** After installing, the app works exactly as described
-here. On macOS, open the `.dmg`, drag the app to Applications, then right-click
-it → **Open** → **Open** the first time. On Linux, make the `.AppImage`
-executable (`chmod +x`) and run it. The [README](../README.md#download) has the
-links.

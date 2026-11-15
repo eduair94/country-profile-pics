@@ -8,18 +8,19 @@ Download every stored profile picture that matches your filters from the WP Data
 | Windows (portable, no install) | `country-profile-pics-windows-portable.exe` |
 | macOS, Apple Silicon (M1–M4) | `country-profile-pics-mac-arm64.dmg` |
 | macOS, Intel | `country-profile-pics-mac-x64.dmg` |
-| Linux | `country-profile-pics-linux-x64.AppImage` |
+| Linux: Ubuntu, Debian, Mint… | `country-profile-pics-linux-x64.deb` |
+| Linux: any distribution | `country-profile-pics-linux-x64.AppImage` |
 
 You need an API key: a direct key from https://whatsapp.checkleaked.cc/api or a RapidAPI key subscribed to WP Data DB Only.
 
 The builds are not code-signed yet:
 - **Windows** may show "Windows protected your PC": click **More info → Run anyway**.
-- **macOS**: right-click the app → **Open**, then **Open** again. If macOS says the app is damaged, run `xattr -cr "/Applications/Country Profile Pictures.app"` once.
-- **Linux**: `chmod +x country-profile-pics-linux-x64.AppImage` and run it.
+- **macOS 15 and later**: after the first try, open **System Settings → Privacy & Security** and click **Open Anyway**. On macOS 14 and earlier, right-click the app → **Open**, then **Open** again. If macOS says the app is damaged, run `xattr -dr com.apple.quarantine "/Applications/Country Profile Pictures.app"` once.
+- **Linux**: `sudo apt install ./country-profile-pics-linux-x64.deb`, or `chmod +x` the AppImage and run it (it needs FUSE 2: `libfuse2t64` on Ubuntu 24.04).
 
 Verify a download with `SHA256SUMS.txt`.
 
-**New to the app?** The [Windows app guide](https://github.com/eduair94/country-profile-pics/blob/main/docs/GUIDE.md) walks through installing, your key, filters, downloading and exporting, with screenshots. To look around without a key, open **Help → Try the Demo**.
+**New to the app?** The [user guide](https://github.com/eduair94/country-profile-pics/blob/main/docs/GUIDE.md) walks through installing on Windows, macOS or Linux, your key, filters, downloading and exporting, with screenshots. To look around without a key, open **Help → Try the Demo**.
 
 ## What it does
 
