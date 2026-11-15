@@ -40,11 +40,25 @@ child.on('exit', (code, signal) => {
   console.log('smoke:', JSON.stringify(result))
   const ok =
     result.title === 'Country profile pictures' &&
+    result.windowTitle === 'Country Profile Pictures' &&
     result.desktop === 'object' &&
     result.countries > 200 &&
     result.config?.desktop === true
   if (!ok) {
     console.error('smoke: the window did not show the app as expected')
+    process.exit(1)
+  }
+  // Help → Try the Demo, switched in place: a key check, three pictures, one read back as a JPEG.
+  const d = result.demo
+  const demoOk =
+    result.demoTitle === 'Country Profile Pictures (demo)' &&
+    d?.role === 'demo' &&
+    d.countries === 8 &&
+    ['limit', 'complete'].includes(d.phase) &&
+    d.saved === 3 &&
+    d.jpeg === true
+  if (!demoOk) {
+    console.error('smoke: demo mode did not work as expected')
     process.exit(1)
   }
   console.log('smoke: ok')

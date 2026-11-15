@@ -19,6 +19,8 @@ The builds are not code-signed yet:
 
 Verify a download with `SHA256SUMS.txt`.
 
+**New to the app?** The [Windows app guide](https://github.com/eduair94/country-profile-pics/blob/main/docs/GUIDE.md) walks through installing, your key, filters, downloading and exporting, with screenshots. To look around without a key, open **Help → Try the Demo**.
+
 ## What it does
 
 - Same filters as the website's database search, every request with `hasProfilePic=true`

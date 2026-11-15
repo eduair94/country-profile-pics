@@ -15,6 +15,10 @@ command line, and it never downloads the same picture twice.
 
 All files and checksums: [latest release](https://github.com/eduair94/country-profile-pics/releases/latest). More about the app: [whatsapp.checkleaked.cc/desktop-app](https://whatsapp.checkleaked.cc/desktop-app).
 
+**First time?** Read the [Windows app guide](docs/GUIDE.md): installing, your key,
+filters, downloading and exporting, step by step with screenshots. To look around
+without a key, open **Help → Try the Demo** in the app.
+
 The builds are not code-signed yet. On **Windows**, if you see "Windows
 protected your PC", click **More info → Run anyway**. On **macOS**, right-click
 the app → **Open**, then **Open** again (if it says the app is damaged, run
@@ -56,6 +60,9 @@ The key needs access to profile data (`urlImage`), which direct keys and the
 
 ## Desktop app
 
+The [Windows app guide](docs/GUIDE.md) covers every screen in detail (it applies to
+macOS and Linux too, once installed). In short:
+
 1. Paste your key and press **Check key**. You'll see its remaining requests
    and how many pictures each country has. Keep **Remember this key** ticked to
    store it encrypted by the operating system (Keychain on macOS, DPAPI on
@@ -71,6 +78,12 @@ The key needs access to profile data (`urlImage`), which direct keys and the
 Pictures go to *Documents/Country Profile Pictures* unless you pick another
 folder under **Save to**. Closing the app stops downloads cleanly; the next run
 continues where it stopped.
+
+**Demo mode.** **Help → Try the Demo (No Key Needed)** switches the window to a
+built-in stand-in for the API: invented numbers (a `0` right after the country
+code, which no real number has), pictures drawn by the app, nothing sent over the
+internet, and its own settings and folder. **Help → Leave Demo Mode** goes back.
+From source: `npm run demo`, or `npm run demo:web` for the browser version.
 
 ## In your browser
 
@@ -296,6 +309,8 @@ Meta Platforms, Inc.
 npm test                  # node:test, no network
 npm run app               # desktop app from source
 npm run smoke             # launch the desktop app once and exit (writes smoke.json)
+npm run demo              # desktop app in demo mode (no key, no network)
+npm run screenshots       # retake the guide's screenshots (docs/images) from the demo
 npm run dist:win          # build installers into dist/ (also dist:mac, dist:linux)
 npm run icons             # re-render build/icon.png from build/icon.svg
 ```
@@ -319,6 +334,7 @@ server's guards.
 | `src/job.js` | A download run: walk, download, dedupe, checkpoint |
 | `src/store.js` | On-disk layout, ledger, run state, locks |
 | `src/export.js` | CSV and ZIP exports |
+| `src/demo.js` | Demo mode: the API and picture CDN, simulated in memory |
 | `src/cli.js`, `src/server.js`, `public/` | Command line, local server and the app's page |
 | `electron/` | Desktop app: window, encrypted key, folder picker |
 

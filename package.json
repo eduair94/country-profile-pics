@@ -1,6 +1,6 @@
 {
   "name": "country-profile-pics",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Desktop app and CLI that download every stored profile picture matching your filters from the WP Data API, with a CSV of every field. Resumable, cursor-based, never downloads twice.",
   "type": "module",
   "bin": {
@@ -13,11 +13,14 @@
   },
   "scripts": {
     "app": "electron .",
+    "demo": "electron . --demo",
     "start": "node src/server.js",
+    "demo:web": "node src/server.js --demo",
     "cli": "node src/cli.js",
     "test": "node --test \"test/*.test.js\"",
     "icons": "node scripts/make-icons.mjs",
     "smoke": "electron . --smoke=smoke.json",
+    "screenshots": "electron . --screenshots=docs/images",
     "dist": "electron-builder --publish never",
     "dist:win": "electron-builder --win --publish never",
     "dist:mac": "electron-builder --mac --publish never",

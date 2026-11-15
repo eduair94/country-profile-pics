@@ -5,15 +5,18 @@
  * only ever sent to the WP Data API.
  *
  *   npm start            → http://localhost:4747
+ *   npm run demo:web     → the same, with the built-in demo data (no key needed)
  */
 import { createHash } from 'node:crypto'
 import { createReadStream } from 'node:fs'
 import { readFile, stat } from 'node:fs/promises'
 import http from 'node:http'
+import os from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { createClient, TRANSPORTS } from './api.js'
 import { COUNTRY_CODES } from './countries.js'
+import { createDemoFetch } from './demo.js'
 import { loadEnv } from './env.js'
 import { AVERAGE_PICTURE_BYTES } from './estimate.js'
 import { writeRunCsv, zipRun } from './export.js'
@@ -463,17 +466,20 @@ if (isMain) {
   loadEnv()
   const host = process.env.HOST || '127.0.0.1'
   const port = Number(process.env.PORT) || 4747
+  const demo = process.argv.includes('--demo')
   const app = createApp({
-    serverKey: process.env.WA_API_KEY,
-    outDir: process.env.OUT_DIR,
+    serverKey: demo ? undefined : process.env.WA_API_KEY,
+    outDir: demo ? path.join(os.tmpdir(), 'country-profile-pics-demo', 'downloads') : process.env.OUT_DIR,
     minIntervalMs: process.env.MIN_INTERVAL_MS ? Number(process.env.MIN_INTERVAL_MS) : undefined,
+    fetch: demo ? createDemoFetch() : undefined,
   })
   const server = http.createServer((req, res) => app.handle(req, res))
   server.listen(port, host, () => {
     const shown = ['127.0.0.1', '::1'].includes(host) ? 'localhost' : host
     console.log(`\n  country-profile-pics is running → http://${shown}:${port}`)
     console.log(`  Saving to ${app.store.root}\n`)
-    if (process.env.WA_API_KEY) console.log('  Using WA_API_KEY from the environment.\n')
+    if (demo) console.log('  Demo mode: invented numbers and drawn pictures, nothing goes online. Type any key.\n')
+    else if (process.env.WA_API_KEY) console.log('  Using WA_API_KEY from the environment.\n')
     if (!['127.0.0.1', 'localhost', '::1'].includes(host)) {
       console.log('  ⚠  Listening beyond this machine: anyone who can reach this port can spend the server key.\n')
     }
