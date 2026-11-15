@@ -32,9 +32,9 @@ function formatBytes(n) {
 
 function formatDuration(ms) {
   const m = Math.round(ms / 60000)
-  if (m < 1) return 'under a minute'
-  if (m < 60) return `${m} minute${m === 1 ? '' : 's'}`
-  return `${Math.floor(m / 60)} h ${m % 60} min`
+  if (m < 1) return 'less than a minute'
+  if (m < 60) return `about ${m} minute${m === 1 ? '' : 's'}`
+  return `about ${Math.floor(m / 60)} h ${m % 60} min`
 }
 
 async function api(method, path, body) {
@@ -405,8 +405,8 @@ function renderProgress(s, running) {
     box.classList.remove('indeterminate')
     $('bar-fill').style.width = `${s.phase === 'complete' ? 100 : Math.min(100, (kept / target) * 100)}%`
     let text = `${fmt.format(kept)} of ${s.max > 0 ? 'up to ' : 'about '}${fmt.format(target)} pictures`
-    if (running && rate > 0.2 && kept < target) text += `, ${rate.toFixed(rate < 10 ? 1 : 0)} per second, about ${formatDuration(((target - kept) / rate) * 1000)} left`
-    $('progress-text').textContent = `${text}. ${fmt.format(s.numbers)} numbers checked, ${s.pageSize} per request.`
+    if (running && rate > 0.2 && kept < target) text += `, ${rate.toFixed(rate < 10 ? 1 : 0)} per second, ${formatDuration(((target - kept) / rate) * 1000)} left`
+    $('progress-text').textContent = `${text}.${s.numbers ? ` ${fmt.format(s.numbers)} numbers checked, ${s.pageSize} per request.` : ''}`
   } else {
     box.classList.toggle('indeterminate', running)
     $('bar-fill').style.width = running ? '' : '100%'

@@ -350,6 +350,9 @@ export class DownloadJob extends EventEmitter {
         const mayFinishHere = room !== Infinity && this._countFiles(handled) >= room
         if (!reachedKnown && !mayFinishHere && page.nextCursor) pending = pull()
 
+        if (handled.length) {
+          this._progress(`Page ${this.stats.pages}: saving the pictures of ${handled.length.toLocaleString('en-US')} numbers…`)
+        }
         const { lastDocId, cut } = await this._downloadPage(handled, signal)
         if (lastDocId) state.cursor = lastDocId
         await this._checkpoint(state, topOfThisWalk)
