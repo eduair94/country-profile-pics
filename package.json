@@ -1,6 +1,6 @@
 {
   "name": "country-profile-pics",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "description": "Desktop app and CLI that download every stored profile picture matching your filters from the WP Data API, with a CSV of every field. Resumable, cursor-based, never downloads twice.",
   "type": "module",
   "bin": {

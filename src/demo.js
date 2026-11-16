@@ -175,14 +175,16 @@ function encodePng(width, height, rgb) {
   ])
 }
 
-function hsl(h, s, l) {
-  const a = s * Math.min(l, 1 - l)
-  const f = (n) => {
-    const k = (n + h / 30) % 12
-    return Math.round(255 * (l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1))))
-  }
-  return [f(0), f(8), f(4)]
-}
+const fromHex = (hex) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16))
+/** Ground, mid and deep shades of six muted hues: sage, dusty blue, sand, heather, mist, straw. */
+const TONES = [
+  ['#D5E2D9', '#9DB8A6', '#3E6B55'],
+  ['#D6DEEA', '#9AAECB', '#3D5680'],
+  ['#E8DCCD', '#C7A98B', '#7D5A3C'],
+  ['#E2D8E0', '#B9A2B4', '#664A61'],
+  ['#DCE1E5', '#A5B0BA', '#3F4C59'],
+  ['#EAE3CF', '#CDBE92', '#6F6236'],
+].map((tones) => tones.map(fromHex))
 
 const SIZE = 160
 
@@ -194,66 +196,71 @@ const SIZE = 160
 function draw(picture) {
   const r = rng(picture)
   const [kind] = picture.split(':')
-  const hue = Math.floor(r() * 360)
   const shapes = []
   const add = (color, test) => shapes.push({ color, test })
-  // `count` horizontal bands blending from one colour to another.
-  const bands = (from, to, count) =>
-    Array.from({ length: count }, (_, k) => from.map((v, c) => Math.round(v + ((to[c] - v) * k) / Math.max(1, count - 1))))
-  let sky = [hsl(hue, 0.5, 0.62)]
+  /*
+   * Quiet pictures in the register's range: one of six muted tones (a ground,
+   * a mid and a deep shade of the same hue), a logo-like sign for businesses
+   * and a landscape or still life for people. Never a person, and never the
+   * grey silhouette that means "no photo". Sizes and places vary with the
+   * seed, so two numbers only share a picture when the demo means them to.
+   */
+  const [ground, mid, deep] = pick(r, TONES)
+  let sky = [ground]
   let skyEnd = SIZE
 
   if (kind === 'logo' || kind === 'chain') {
-    const shape = Math.floor(r() * 4)
-    add([255, 255, 255], [
-      (x, y) => (x - 80) ** 2 + (y - 80) ** 2 < 52 ** 2,
-      (x, y) => Math.abs(x - 80) < 48 && Math.abs(y - 80) < 48,
-      (x, y) => Math.abs(x - 80) + Math.abs(y - 80) < 62,
-      (x, y) => y < 128 && y > 30 && Math.abs(x - 80) < (y - 30) * 0.58,
-    ][shape])
-    add(hsl((hue + 180) % 360, 0.55, 0.5), (x, y) => (x - 80) ** 2 + (y - 88) ** 2 < 18 ** 2)
+    // An outlined sign with a dot: a ring, a square, a diamond or a triangle.
+    const size = 38 + r() * 12
+    const weight = 3 + r() * 2.5
+    const outline = [
+      (x, y) => Math.abs(Math.hypot(x - 80, y - 80) - size) < weight,
+      (x, y) => Math.abs(Math.max(Math.abs(x - 80), Math.abs(y - 80)) - size) < weight,
+      (x, y) => Math.abs(Math.abs(x - 80) + Math.abs(y - 80) - size * 1.3) < weight * 1.4,
+      (x, y) => {
+        const inside = (grow) => y < 124 + grow && y > 34 - grow * 2 && Math.abs(x - 80) < (y - 34 + grow * 2) * 0.58
+        return inside(weight) && !inside(-weight)
+      },
+    ][Math.floor(r() * 4)]
+    const dot = 9 + r() * 9
+    const dx = 80 + (r() - 0.5) * 16
+    const dy = 84 + (r() - 0.5) * 12
+    add(deep, outline)
+    add(mid, (x, y) => (x - dx) ** 2 + (y - dy) ** 2 < dot ** 2)
   } else {
-    const scene = ['mountains', 'sunset', 'flower', 'rings'][Math.floor(r() * 4)]
-    if (scene === 'mountains') {
-      sky = bands(hsl(205 + r() * 20, 0.65, 0.6), hsl(195, 0.6, 0.86), 12)
-      skyEnd = 130
-      const sun = 30 + r() * 100
-      add(hsl(45, 0.95, 0.62), (x, y) => (x - sun) ** 2 + (y - 40) ** 2 < 15 ** 2)
-      const far = 30 + r() * 50
-      const near = 90 + r() * 50
-      add(hsl(220, 0.18, 0.5), (x, y) => y > 62 + Math.abs(x - far) * 0.95)
-      add([245, 248, 252], (x, y) => y > 62 + Math.abs(x - far) * 0.95 && y < 77)
-      add(hsl(215, 0.2, 0.36), (x, y) => y > 84 + Math.abs(x - near) * 0.8)
-      add(hsl(100 + r() * 40, 0.4, 0.38), (x, y) => y > 128 + Math.sin(x / 18) * 3)
-    } else if (scene === 'sunset') {
-      sky = bands(hsl(265 + r() * 30, 0.45, 0.45), hsl(25 + r() * 20, 0.9, 0.7), 10)
-      skyEnd = 104
-      const sun = 50 + r() * 60
-      add(hsl(45, 1, 0.72), (x, y) => y < 104 && (x - sun) ** 2 + (y - 104) ** 2 < 30 ** 2)
-      const sea = bands(hsl(210, 0.55, 0.42), hsl(215, 0.6, 0.24), 6)
-      sea.forEach((color, k) => add(color, (x, y) => y >= 104 + k * 10))
-      add(hsl(45, 0.95, 0.75), (x, y) => y > 108 && Math.floor((y - 108) / 6) % 2 === 0 && Math.abs(x - sun) < 24 - (y - 108) * 0.35)
-    } else if (scene === 'flower') {
-      sky = bands(hsl(hue, 0.4, 0.88), hsl(hue, 0.4, 0.76), 8)
-      const petal = hsl((hue + 180) % 360, 0.65, 0.6)
-      add(hsl(120, 0.4, 0.4), (x, y) => y > 80 && Math.abs(x - 80 - (y - 80) * 0.08) < 3.5)
-      add(hsl(120, 0.4, 0.45), (x, y) => ((x - 100) / 18) ** 2 + ((y - 128) / 8) ** 2 < 1)
-      for (let k = 0; k < 6; k++) {
-        const a = (k * Math.PI) / 3 + r() * 0.2
-        const px = 80 + Math.cos(a) * 25
-        const py = 68 + Math.sin(a) * 25
-        add(petal, (x, y) => (x - px) ** 2 + (y - py) ** 2 < 17 ** 2)
-      }
-      add(hsl(45, 0.95, 0.55), (x, y) => (x - 80) ** 2 + (y - 68) ** 2 < 14 ** 2)
+    const scene = ['water', 'hills', 'leaf', 'window'][Math.floor(r() * 4)]
+    if (scene === 'water') {
+      // A low sun over water.
+      const sun = 40 + r() * 80
+      const radius = 16 + r() * 10
+      const horizon = 88 + r() * 16
+      add(mid, (x, y) => (x - sun) ** 2 + (y - horizon + 4) ** 2 < radius ** 2)
+      add(deep, (x, y) => y >= horizon)
+      add(mid, (x, y) => (y >= horizon + 14 && y < horizon + 17) || (y >= horizon + 32 && y < horizon + 35))
+    } else if (scene === 'hills') {
+      const peak = 30 + r() * 100
+      const far = 62 + r() * 18
+      const near = 104 + r() * 16
+      add(mid, (x, y) => y > far + ((x - peak) / 9) ** 2 * 0.9)
+      add(deep, (x, y) => y > near + ((x - (160 - peak)) / 11) ** 2 * 0.6)
+    } else if (scene === 'leaf') {
+      // Two circles overlap into a leaf; a line down its middle.
+      const reach = 68 + r() * 10
+      const lean = (r() - 0.5) * 20
+      const ax = 44 + lean
+      const bx = 116 + lean
+      add(mid, (x, y) => (x - ax) ** 2 + (y - 44) ** 2 < reach ** 2 && (x - bx) ** 2 + (y - 116) ** 2 < reach ** 2)
+      add(deep, (x, y) => Math.abs(x - lean + y - 160) < 2.2 && x - lean > 50 && x - lean < 110)
     } else {
-      sky = [hsl(hue, 0.55, 0.3)]
-      const cx = 40 + r() * 80
-      const cy = 40 + r() * 80
-      const colors = [0, 40, 80, 120].map((d, k) => hsl((hue + d) % 360, 0.6 - k * 0.03, 0.55 + k * 0.1))
-      for (let k = 0; k < 8; k++) {
-        const radius = 120 - k * 15
-        add(colors[k % 4], (x, y) => (x - cx) ** 2 + (y - cy) ** 2 < radius ** 2)
-      }
+      // An arched window.
+      sky = [mid]
+      const half = 24 + r() * 12
+      const spring = 68 + r() * 14
+      const sill = 126 + r() * 14
+      const bar = spring + 14 + r() * 16
+      const arch = (x, y) => (y >= spring ? Math.abs(x - 80) < half && y < sill : (x - 80) ** 2 + (y - spring) ** 2 < half ** 2)
+      add(ground, arch)
+      add(deep, (x, y) => arch(x, y) && (Math.abs(x - 80) < 2 || Math.abs(y - bar) < 2))
     }
   }
 

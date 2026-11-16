@@ -78,7 +78,8 @@ screen in detail. In short:
 3. Choose **The newest N pictures** or **All of them**, then press
    **Download pictures**.
 4. Watch the contact sheet fill (previews are blurred until you untick
-   *Blur previews*). Press **Download CSV** or **Download ZIP** when it is done.
+   *Blur previews*). Press **Export CSV** or **Export ZIP**, at the top of the
+   run, when it is done.
 5. **Earlier runs** lists everything you have downloaded. **Continue** picks up
    an unfinished run, **Check for new** updates a finished one.
 

@@ -41,7 +41,7 @@ before(async () => {
 after(async () => {
   server.closeAllConnections?.()
   await new Promise((r) => server.close(r))
-  await rm(out, { recursive: true, force: true })
+  await rm(out, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 })
 })
 
 async function call(method, p, body) {
@@ -69,6 +69,7 @@ test('check, download, preview, list runs and export through the HTTP API', asyn
   assert.equal(cfg.serverKey, false)
   assert.ok(cfg.countries.includes('UY'))
   assert.equal(cfg.adultAge, 18)
+  assert.equal(cfg.demo, false, 'real data unless the app was started as a demo')
 
   assert.equal((await call('POST', '/api/check', {})).status, 400)
 
@@ -100,6 +101,11 @@ test('check, download, preview, list runs and export through the HTTP API', asyn
   assert.equal(snap.snapshot.phase, 'complete')
   assert.equal(snap.snapshot.saved, 12)
   assert.equal(snap.images.length, 12)
+  assert.deepEqual(
+    snap.images.map((img) => img.n),
+    [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+    'each picture carries its place in the run, so a reloaded page numbers them the same',
+  )
 
   // The Stop button posts an empty JSON body; it must get through the cross-site guard.
   const cancel = await call('POST', `/api/jobs/${started.json().id}/cancel`, {})

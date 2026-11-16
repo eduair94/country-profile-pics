@@ -16,12 +16,63 @@ const state = {
   stats: null,
   jobId: null,
   events: null,
-  frame: 0,
   categories: new Map(), // id → name
 }
 
 const countryName = (code) => (!code ? 'All countries' : code === 'XK' ? 'Kosovo' : regionNames?.of(code) ?? code)
-const flag = (code) => (code ? String.fromCodePoint(...[...code].map((c) => 0x1f1e6 + c.charCodeAt(0) - 65)) : '🌐')
+
+/** One of the drawn marks of index.html, by the id of its symbol. */
+function mark(id, extra = '') {
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+  svg.setAttribute('class', `mark ${extra}`.trim())
+  svg.setAttribute('aria-hidden', 'true')
+  const use = document.createElementNS('http://www.w3.org/2000/svg', 'use')
+  use.setAttribute('href', `#${id}`)
+  svg.append(use)
+  return svg
+}
+
+const two = (n) => String(n).padStart(2, '0')
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+/** "16 Nov 2026" */
+const day = (d) => `${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`
+/** "14:05", or "14:05:09" with seconds. */
+const clock = (d, seconds = false) => `${two(d.getHours())}:${two(d.getMinutes())}${seconds ? `:${two(d.getSeconds())}` : ''}`
+
+/** The five results of a run, in the order and the words of the totals. */
+const RESULTS = [
+  ['saved', 'new picture', 'new pictures'],
+  ['existing', 'already saved'],
+  ['duplicates', 'identical, linked'],
+  ['missing', 'no longer public'],
+  ['failed', 'failed'],
+]
+const resultCounts = (t = {}) => ({
+  saved: (t.saved ?? 0) + (t.refreshed ?? 0),
+  existing: t.existing ?? 0,
+  duplicates: t.duplicates ?? 0,
+  missing: t.missing ?? 0,
+  failed: t.failed ?? 0,
+})
+
+/** Fills a bar with one part per result, each as wide as its share. */
+function fillShares(el, totals) {
+  const counts = resultCounts(totals)
+  const words = []
+  el.replaceChildren()
+  for (const [key, one, many = one] of RESULTS) {
+    const v = counts[key]
+    words.push(`${fmt.format(v)} ${v === 1 ? one : many}`)
+    if (!v) continue
+    const part = document.createElement('span')
+    part.className = `share share-${key}`
+    part.style.flexGrow = String(v)
+    el.append(part)
+  }
+  el.setAttribute('role', 'img')
+  el.setAttribute('aria-label', words.join(', '))
+  el.title = words.join(', ')
+}
 
 function formatBytes(n) {
   if (!n) return '0 MB'
@@ -67,11 +118,11 @@ function populateCountries() {
   const known = [...(state.stats?.countries ?? [])].sort((a, b) => b.pictures - a.pictures)
   const knownCodes = new Set(known.map((c) => c.code))
 
-  select.replaceChildren(new Option('Choose a country…', ''), new Option('🌐  All countries', 'ALL'))
+  select.replaceChildren(new Option('Choose a country…', ''), new Option('All countries', 'ALL'))
   if (known.length) {
     const group = document.createElement('optgroup')
     group.label = 'Most pictures'
-    for (const c of known) group.append(new Option(`${flag(c.code)}  ${countryName(c.code)} (${fmt.format(c.pictures)} pictures)`, c.code))
+    for (const c of known) group.append(new Option(`${countryName(c.code)} (${fmt.format(c.pictures)} pictures)`, c.code))
     select.append(group)
   }
   const group = document.createElement('optgroup')
@@ -80,7 +131,7 @@ function populateCountries() {
     .filter((code) => !knownCodes.has(code))
     .map((code) => ({ code, name: countryName(code) }))
     .sort((a, b) => a.name.localeCompare(b.name))
-    .forEach((c) => group.append(new Option(`${flag(c.code)}  ${c.name}`, c.code)))
+    .forEach((c) => group.append(new Option(c.name, c.code)))
   select.append(group)
   select.value = selected
 }
@@ -138,7 +189,7 @@ async function checkKey({ quiet = false } = {}) {
     if (res.key) {
       const role = res.key.role ? `${res.key.role[0].toUpperCase()}${res.key.role.slice(1)} key` : 'Key'
       const left = res.key.remaining != null ? `${fmt.format(res.key.remaining)} requests left` : 'quota unknown'
-      const expires = res.key.expiresAt ? `, valid until ${new Date(res.key.expiresAt).toLocaleDateString()}` : ''
+      const expires = res.key.expiresAt ? `, valid until ${day(new Date(res.key.expiresAt))}` : ''
       text = `${role} accepted: ${left}${expires}.`
     } else {
       text = 'RapidAPI key accepted.'
@@ -171,7 +222,7 @@ function renderCategories() {
     const li = document.createElement('li')
     const b = document.createElement('button')
     b.type = 'button'
-    b.textContent = `${name} ✕`
+    b.append(name, mark('m-missing'))
     b.setAttribute('aria-label', `Remove ${name}`)
     b.addEventListener('click', () => {
       state.categories.delete(id)
@@ -326,6 +377,7 @@ async function start(event) {
   try {
     const res = await api('POST', '/api/jobs', requestBody())
     attach(res.id)
+    if (matchMedia('(max-width: 55rem)').matches) $('run').scrollIntoView({ block: 'start' })
   } catch (err) {
     show(error, err.message, 'error')
     $('start').disabled = false
@@ -335,7 +387,6 @@ async function start(event) {
 function attach(id) {
   state.events?.close()
   state.jobId = id
-  state.frame = 0
   $('sheet').replaceChildren()
   $('log').replaceChildren()
 
@@ -364,22 +415,23 @@ function setExport(el, slug, kind, enabled) {
 
 function render(s) {
   const running = s.phase === 'running'
-  $('run-flag').textContent = flag(s.country)
+  $('run-flag').textContent = s.country || 'All'
   $('run-title').textContent = countryName(s.country)
   $('run-filters').textContent = s.description === 'no filters' ? '' : s.description
   $('run-message').textContent = s.message || (running ? 'Starting…' : '')
 
-  $('c-saved').textContent = fmt.format(s.saved + (s.refreshed ?? 0))
-  $('c-existing').textContent = fmt.format(s.existing)
-  $('c-duplicates').textContent = fmt.format(s.duplicates)
-  $('c-missing').textContent = fmt.format(s.missing)
-  $('c-failed').textContent = fmt.format(s.failed)
+  for (const [key, value] of Object.entries(resultCounts(s))) {
+    const figure = $(`c-${key}`)
+    figure.textContent = fmt.format(value)
+    figure.parentElement.classList.toggle('zero', value === 0)
+  }
   $('c-credits').textContent = fmt.format(s.credits)
   $('c-quota').textContent = s.quotaRemaining == null ? '—' : fmt.format(s.quotaRemaining)
   $('c-bytes').textContent = formatBytes(s.bytes)
 
   $('start').disabled = running
   $('start').textContent = running ? 'Downloading…' : 'Download pictures'
+  $('run-actions').hidden = false
   $('cancel').hidden = !running
   const ready = !running && (s.numbers > 0 || (s.totals?.numbers ?? 0) > 0)
   setExport($('csv'), s.slug, 'csv', ready)
@@ -388,6 +440,7 @@ function render(s) {
   $('folder-path').textContent = s.outDir
 
   renderProgress(s, running)
+  renderRunLink(s, running)
 }
 
 function renderProgress(s, running) {
@@ -400,6 +453,9 @@ function renderProgress(s, running) {
   const elapsed = Date.now() - Date.parse(s.startedAt ?? new Date().toISOString())
   const rate = (s.saved + s.duplicates + s.existing) / Math.max(1, elapsed / 1000)
   box.hidden = false
+  $('bar').hidden = !running
+  $('shares').hidden = running
+  if (!running) fillShares($('shares'), s)
 
   if (target && target > 0) {
     box.classList.remove('indeterminate')
@@ -414,8 +470,22 @@ function renderProgress(s, running) {
   }
 }
 
+function renderRunLink(s, running) {
+  const kept = fmt.format(s.saved + (s.refreshed ?? 0) + s.existing + s.duplicates)
+  const status = running
+    ? `downloading, ${kept} so far`
+    : s.phase === 'error'
+      ? 'stopped with an error'
+      : `${s.phase === 'complete' ? 'complete' : 'stopped'}, ${kept} pictures`
+  $('run-link-mark').replaceChildren(
+    s.phase === 'error' ? mark('m-failed', 'mark-failed') : s.phase === 'complete' ? mark('m-saved', 'mark-saved') : mark('m-open'),
+  )
+  $('run-link-title').textContent = countryName(s.country)
+  $('run-link-status').textContent = status
+  $('run-link').hidden = false
+}
+
 function addFrame(img, fresh) {
-  state.frame++
   const [cc, file] = img.file.split('/')
   const li = document.createElement('li')
   li.className = fresh ? 'frame new' : 'frame'
@@ -427,7 +497,7 @@ function addFrame(img, fresh) {
   pic.decoding = 'async'
   const caption = document.createElement('figcaption')
   const no = document.createElement('span')
-  no.textContent = String(state.frame)
+  no.textContent = img.n ? fmt.format(img.n) : ''
   const tail = document.createElement('span')
   tail.textContent = `${cc} …${img.number.slice(-4)}${img.kind === 'history' ? ' old' : ''}`
   caption.append(no, tail)
@@ -442,8 +512,10 @@ function addLog({ at, line }) {
   const li = document.createElement('li')
   const time = document.createElement('time')
   time.dateTime = at
-  time.textContent = new Date(at).toLocaleTimeString()
-  li.append(time, line)
+  time.textContent = clock(new Date(at), true)
+  const words = document.createElement('span')
+  words.textContent = line
+  li.append(time, words)
   const log = $('log')
   log.prepend(li)
   while (log.children.length > 200) log.lastElementChild.remove()
@@ -467,7 +539,7 @@ async function loadRuns() {
     li.className = 'run-item'
     const info = document.createElement('div')
     const h = document.createElement('h3')
-    h.textContent = `${flag(r.filters?.country)} ${countryName(r.filters?.country)}`
+    h.textContent = countryName(r.filters?.country)
     const desc = document.createElement('p')
     desc.textContent = r.description === 'no filters' ? 'No filters' : r.description
     const meta = document.createElement('p')
@@ -475,12 +547,14 @@ async function loadRuns() {
     st.className = `state${r.complete ? ' done' : ''}`
     st.textContent = r.running ? 'Running' : r.complete ? 'Complete' : 'Can continue'
     const n = (v, word) => `${fmt.format(v ?? 0)} ${word}${v === 1 ? '' : 's'}`
-    meta.append(
-      st,
-      `: ${n(t.numbers, 'number')} checked, ${fmt.format((t.saved ?? 0) + (t.refreshed ?? 0))} new downloads, ` +
-        `${fmt.format(t.duplicates ?? 0)} linked, ${n(t.credits, 'request')}. Updated ${new Date(r.updatedAt).toLocaleString()}`,
-    )
-    info.append(h, desc, meta)
+    const updated = new Date(r.updatedAt)
+    // Numbers are counted page by page: a run stopped inside its first page has none yet.
+    const cost = t.numbers ? `${n(t.numbers, 'number')} checked with ${n(t.credits, 'request')}` : `${n(t.credits, 'request')} so far`
+    meta.append(st, `, ${day(updated)} at ${clock(updated)}. ${cost}.`)
+    const bar = document.createElement('div')
+    bar.className = 'bar shares'
+    fillShares(bar, t)
+    info.append(h, desc, bar, meta)
 
     const buttons = document.createElement('div')
     buttons.className = 'run-buttons'
@@ -502,7 +576,11 @@ async function loadRuns() {
     zip.textContent = 'ZIP'
     zip.href = `/api/runs/${encodeURIComponent(r.slug)}/zip`
     buttons.append(go, csv, zip)
-    li.append(info, buttons)
+    // The gutter mark: a tick for a finished run, an open ring for one that can go on.
+    const gutter = document.createElement('span')
+    gutter.className = 'gutter'
+    gutter.append(r.complete ? mark('m-saved', 'mark-saved') : mark('m-open'))
+    li.append(gutter, info, buttons)
     list.append(li)
   }
 }
@@ -520,7 +598,7 @@ function renderKeyState() {
       ? 'Paste a different key to use it instead.'
       : 'WA_API_KEY is set where this app runs. Paste a different key to use that one instead.'
   } else {
-    $('key').placeholder = 'wapi_… or your RapidAPI key'
+    $('key').placeholder = 'Paste your key'
     $('key-hint').textContent =
       'A website key, or a RapidAPI key subscribed to WP Data DB Only. It stays on this computer.'
   }
@@ -536,6 +614,9 @@ async function init() {
   populateCountries()
   renderKeyState()
   renderFolder(state.config.outDir)
+  $('demo-tag').hidden = !state.config.demo
+  $('footer-demo').hidden = !state.config.demo
+  $('footer-real').hidden = Boolean(state.config.demo)
   if (state.config.serverKey) void checkKey({ quiet: true })
 
   const desktop = window.desktop

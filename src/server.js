@@ -40,6 +40,8 @@ const TYPES = {
   '.css': 'text/css; charset=utf-8',
   '.svg': 'image/svg+xml',
   '.png': 'image/png',
+  '.woff2': 'font/woff2',
+  '.txt': 'text/plain; charset=utf-8',
 }
 
 const keyId = (key, transport) => createHash('sha256').update(`${transport}:${key}`).digest('hex').slice(0, 16)
@@ -49,6 +51,7 @@ const keyId = (key, transport) => createHash('sha256').update(`${transport}:${ke
  * @param {string} [config.serverKey]   key used when the browser sends none
  * @param {string} [config.outDir]
  * @param {typeof fetch} [config.fetch] injectable for tests
+ * @param {boolean} [config.demo]       the data is invented: the page says so
  * @param {number} [config.minIntervalMs]
  * @param {string} [config.token]       desktop app: every /api request must carry this
  *                                      secret in the `cpp_token` cookie
@@ -100,7 +103,7 @@ export function createApp(config = {}) {
       }
     }
     const id = `${Date.now().toString(36)}${(++seq).toString(36)}`
-    const entry = { id, job, clients: new Set(), images: [], logs: [] }
+    const entry = { id, job, clients: new Set(), images: [], logs: [], frames: 0 }
     jobs.set(id, entry)
 
     const broadcast = (event, data) => {
@@ -115,9 +118,11 @@ export function createApp(config = {}) {
       broadcast('log', item)
     })
     job.on('image', (img) => {
-      entry.images.push(img)
+      // `n` is the picture's place in this run, so a page that reloads shows the same numbers.
+      const item = { ...img, n: ++entry.frames }
+      entry.images.push(item)
       if (entry.images.length > RECENT_IMAGES) entry.images.shift()
-      broadcast('image', img)
+      broadcast('image', item)
     })
     job.on('done', (s) => broadcast('done', s))
     // run() records its own failures in the job; anything escaping it is a bug worth logging.
@@ -168,6 +173,7 @@ export function createApp(config = {}) {
       () => ({
         serverKey: Boolean(serverKey),
         desktop: Boolean(token),
+        demo: Boolean(config.demo),
         canRememberKey: Boolean(keyStore),
         outDir,
         defaults: { max: DEFAULTS.max, concurrency: DEFAULTS.concurrency, pageSize: DEFAULTS.pageSize },
@@ -363,8 +369,8 @@ export function createApp(config = {}) {
         ...(file.endsWith('.html')
           ? {
               'content-security-policy':
-                "default-src 'self'; img-src 'self' data:; style-src 'self' https://fonts.googleapis.com; " +
-                "font-src https://fonts.gstatic.com; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
+                "default-src 'self'; img-src 'self' data:; style-src 'self'; " +
+                "font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
               'referrer-policy': 'no-referrer',
             }
           : {}),
@@ -473,6 +479,7 @@ if (isMain) {
     outDir: demo ? path.join(os.tmpdir(), 'country-profile-pics-demo', 'downloads') : process.env.OUT_DIR,
     minIntervalMs: process.env.MIN_INTERVAL_MS ? Number(process.env.MIN_INTERVAL_MS) : undefined,
     fetch: demo ? createDemoFetch() : undefined,
+    demo,
   })
   const server = http.createServer((req, res) => app.handle(req, res))
   server.listen(port, host, () => {

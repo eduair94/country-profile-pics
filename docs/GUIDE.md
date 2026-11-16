@@ -295,20 +295,30 @@ everyone.
 
 Click **Download pictures**. The right column follows the run:
 
-![A run in progress: counters, progress bar and blurred previews](images/06-downloading.png)
+![A run in progress: totals, the progress line and blurred previews](images/06-downloading.png)
 
-| Counter | Meaning |
+The run's country is the headline, with **Stop** and the two export buttons
+beside it. The five totals under it each start with their mark, which takes its
+colour with the first result of its kind:
+
+| Mark | Total | Meaning |
+| --- | --- | --- |
+| A green tick | **New pictures** | Downloaded in this run. |
+| A ticked ring | **Already saved** | Already on disk from an earlier run, so skipped. |
+| Two linked rings | **Identical, linked** | Exactly the same picture as one already saved, so linked to it instead of saved again. |
+| A cross | **No longer public** | The picture was removed, or its owner hid their number. Nothing to download. These don't count towards your limit. |
+| A red exclamation mark | **Failed** | Could not be downloaded after several tries. They are retried first on your next run. |
+
+The line under them shows progress, speed and the time left. When the run ends
+it turns into a bar with one part per result, in the same order as the totals
+and as wide as its share: green for new pictures, red for failed. Below it is
+what the run cost:
+
+| | Meaning |
 | --- | --- |
-| **New pictures** | Downloaded in this run. |
-| **Already saved** | Already on disk from an earlier run, so skipped. |
-| **Identical, linked** | Exactly the same picture as one already saved, so linked to it instead of saved again. |
-| **No longer public** | The picture was removed, or its owner hid their number. Nothing to download. These don't count towards your limit. |
-| **Failed** | Could not be downloaded after several tries. They are retried first on your next run. |
 | **Requests used** | Search requests this run spent from your key. |
 | **Requests left** | What your key has left, as the API reported it after the last request. |
 | **Downloaded** | Disk space used by this run's new pictures. |
-
-The bar below shows progress, speed and the time left.
 
 The **contact sheet** shows the 48 most recent pictures. Previews are blurred
 until you untick **Blur previews**. This only changes the preview. The files
@@ -316,9 +326,10 @@ on disk are never blurred.
 
 ![The finished run, with Blur previews turned off (these are the demo's drawn pictures)](images/07-finished.png)
 
-When the title says **Done: every matching picture is saved**, the run is
-complete. **Activity**, under the buttons, lists anything worth knowing, such as
-retries and pictures that failed.
+When the line under the country says **Done: every matching picture is
+saved**, the run is complete. **Activity**, under the contact sheet, lists
+anything worth knowing, such as retries and pictures that failed, each with its
+time.
 
 ## 10. Stop, continue and update
 
@@ -337,6 +348,10 @@ made in this folder:
 
 ![Earlier runs: a stopped Mexico business run that can continue, and a complete Uruguay run](images/08-earlier-runs.png)
 
+A green tick in front of a run means it is complete; an open ring means it can
+continue. The bar under its name shows its results the same way as the bar of a
+finished run, followed by when it last ran and what it has cost.
+
 - **Continue** (a run that was stopped or hit its limit) puts the run's filters
   back in the form and carries on exactly where it stopped. At most one search
   request is repeated.
@@ -349,9 +364,9 @@ The app recognises the run and continues it.
 
 ## 11. Export a CSV or ZIP
 
-When a run has finished (or been stopped), click **Download CSV** or
-**Download ZIP**, or the **CSV** / **ZIP** button next to a run under
-**Earlier runs**. The app asks where to save the file.
+When a run has finished (or been stopped), click **Export CSV** or
+**Export ZIP** at the top of the run, or the **CSV** / **ZIP** button next to a
+run under **Earlier runs**. The app asks where to save the file.
 
 - **CSV**: one row per number. It starts with `country`, `number`,
   `picture_file` (where the picture is on disk), `picture_shared` (`yes` when the
@@ -401,8 +416,9 @@ address bar; on a Mac, in Finder choose **Go → Go to Folder…** and paste it.
 ## 13. Try it without a key
 
 Open **Help → Try the Demo (No Key Needed)** (version 1.0.1 or later). The
-window switches to demo mode, with *(demo)* in its title. If a download is
-running, the app asks first, then stops it with its progress saved.
+window switches to demo mode, with *(demo)* in its title and a **Demo data**
+label next to the run. If a download is running, the app asks first, then stops
+it with its progress saved.
 
 - Type anything as the key and click **Check key**.
 - Everything works as with a real key, from filters to CSV, but the numbers are

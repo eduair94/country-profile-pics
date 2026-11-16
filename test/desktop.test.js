@@ -36,7 +36,7 @@ before(async () => {
 after(async () => {
   server.closeAllConnections?.()
   await new Promise((r) => server.close(r))
-  await rm(out, { recursive: true, force: true })
+  await rm(out, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 })
 })
 
 const call = (method, p, { body, cookie = `cpp_token=${TOKEN}` } = {}) =>

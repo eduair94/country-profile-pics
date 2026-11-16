@@ -8,3 +8,6 @@ downloads/
 .DS_Store
 dist/
 smoke.json
+# impeccable working files (PRODUCT.md and DESIGN.md are committed)
+.impeccable/
+.review/

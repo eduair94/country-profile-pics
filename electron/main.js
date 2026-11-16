@@ -4,7 +4,7 @@
  * must carry a secret cookie handed only to that window, so no other program
  * on the machine can use the port to spend your key.
  */
-import { app, BrowserWindow, dialog, ipcMain, Menu, nativeImage, safeStorage, session, shell } from 'electron'
+import { app, BrowserWindow, dialog, ipcMain, Menu, nativeImage, nativeTheme, safeStorage, session, shell } from 'electron'
 import { randomBytes } from 'node:crypto'
 import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises'
 import http from 'node:http'
@@ -123,6 +123,7 @@ async function startLocal() {
     keyStore: keys,
     serverKey: screenshotsDir ? '' : ((await keys?.load()) ?? ''),
     fetch: demo ? createDemoFetch({ toJpeg: (png) => nativeImage.createFromBuffer(png).toJPEG(90) }) : undefined,
+    demo,
   })
   server = http.createServer((req, res) => local.handle(req, res))
   await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve))
@@ -176,13 +177,15 @@ async function setDemo(on) {
 // ── Window ─────────────────────────────────────────────────────────────────
 
 function createWindow() {
+  // The guide shows the light look; SCREENSHOT_THEME=dark takes the dark one.
+  if (screenshotsDir) nativeTheme.themeSource = process.env.SCREENSHOT_THEME === 'dark' ? 'dark' : 'light'
   win = new BrowserWindow({
     width: screenshotsDir ? 1280 : 1320,
     height: screenshotsDir ? 860 : 920,
     minWidth: 420,
     minHeight: 560,
     title: windowTitle(),
-    backgroundColor: '#f3f4f1',
+    backgroundColor: nativeTheme.shouldUseDarkColors ? '#0f1826' : '#eef5f1',
     icon: path.join(here, '..', 'build', 'icon.png'),
     show: false,
     webPreferences: {

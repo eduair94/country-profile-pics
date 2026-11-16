@@ -4,19 +4,34 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Country profile pictures</title>
+  <meta name="color-scheme" content="light dark">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&display=swap">
+  <link rel="preload" href="/fonts/figtree-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/style.css">
   <script src="/app.js" type="module"></script>
 </head>
 <body>
+  <!-- The marks: one drawn sign per kind of result, on a 16-unit grid with one stroke. -->
+  <svg class="marks" aria-hidden="true">
+    <symbol id="m-saved" viewBox="0 0 16 16"><path d="M3.2 8.6l3.1 3.1 6.5-7.4"/></symbol>
+    <symbol id="m-existing" viewBox="0 0 16 16"><circle cx="8" cy="8" r="4.6"/><path d="M5.9 8.2l1.5 1.5 2.9-3.3"/></symbol>
+    <symbol id="m-linked" viewBox="0 0 16 16"><circle cx="6" cy="8" r="3.4"/><circle cx="10" cy="8" r="3.4"/></symbol>
+    <symbol id="m-missing" viewBox="0 0 16 16"><path d="M4.4 4.4l7.2 7.2M11.6 4.4l-7.2 7.2"/></symbol>
+    <symbol id="m-failed" viewBox="0 0 16 16"><path d="M8 3.4v5.4"/><path d="M8 12.2v.1"/></symbol>
+    <symbol id="m-open" viewBox="0 0 16 16"><circle cx="8" cy="8" r="3.6"/></symbol>
+  </svg>
+  <a class="skip" href="#run">Skip to the download</a>
   <div class="page">
     <header class="masthead">
       <h1>Country profile pictures</h1>
       <p>Download every stored profile picture that matches your filters from the WP Data API, with a CSV of every field. Nothing is downloaded twice.</p>
     </header>
+
+    <!-- One column only: the run is below the form, so its state is one line up here. -->
+    <a class="run-link" id="run-link" href="#run" hidden>
+      <span class="gutter" id="run-link-mark"></span>
+      <span class="run-link-text"><b id="run-link-title"></b> <span id="run-link-status"></span></span>
+    </a>
 
     <main class="layout">
       <form class="setup" id="setup" novalidate>
@@ -24,7 +39,7 @@
           <h2 id="key-title">API key</h2>
           <div class="key-row">
             <label class="sr-only" for="key">API key</label>
-            <input id="key" name="key" type="password" autocomplete="off" spellcheck="false" placeholder="wapi_… or your RapidAPI key">
+            <input id="key" name="key" type="password" autocomplete="off" spellcheck="false" placeholder="Paste your key">
             <button type="button" class="btn quiet" id="check">Check key</button>
           </div>
           <p class="hint" id="key-hint">A website key, or a RapidAPI key subscribed to WP Data DB Only. It stays on this computer.</p>
@@ -187,28 +202,45 @@
       <div class="right">
         <section class="run" id="run" aria-labelledby="run-title">
           <div class="run-head">
-            <span class="flag" id="run-flag" aria-hidden="true"></span>
-            <div>
-              <h2 id="run-title">Nothing downloading yet</h2>
+            <span class="code" id="run-flag" aria-hidden="true"></span>
+            <div class="run-words">
+              <div class="run-title-row">
+                <h2 id="run-title">Nothing downloading yet</h2>
+                <span class="tag" id="demo-tag" hidden>Demo data</span>
+              </div>
               <p class="run-filters" id="run-filters"></p>
-              <p class="run-message" id="run-message" aria-live="polite">Choose a country and press Download pictures. Each picture appears here as it's saved.</p>
             </div>
           </div>
 
-          <dl class="counters" id="counters">
-            <div class="counter lead"><dt>New pictures</dt><dd id="c-saved">0</dd></div>
-            <div class="counter"><dt>Already saved</dt><dd id="c-existing">0</dd></div>
-            <div class="counter"><dt>Identical, linked</dt><dd id="c-duplicates">0</dd></div>
-            <div class="counter"><dt>No longer public</dt><dd id="c-missing">0</dd></div>
-            <div class="counter"><dt>Failed</dt><dd id="c-failed">0</dd></div>
-            <div class="counter"><dt>Requests used</dt><dd id="c-credits">0</dd></div>
-            <div class="counter"><dt>Requests left</dt><dd id="c-quota">—</dd></div>
-            <div class="counter"><dt>Downloaded</dt><dd id="c-bytes">0 MB</dd></div>
-          </dl>
+          <div class="run-actions" id="run-actions" hidden>
+            <button type="button" class="btn quiet" id="cancel" hidden>Stop</button>
+            <a class="btn quiet" id="csv" href="#" aria-disabled="true">Export CSV</a>
+            <a class="btn quiet" id="zip" href="#" aria-disabled="true">Export ZIP</a>
+            <button type="button" class="btn quiet" id="open-folder" hidden>Open folder</button>
+          </div>
 
-          <div class="progress" id="progress" hidden>
-            <div class="bar"><span id="bar-fill"></span></div>
-            <p id="progress-text"></p>
+          <p class="run-message" id="run-message" aria-live="polite">Choose a country and press Download pictures. Each picture appears here as it's saved.</p>
+
+          <div class="tally" id="counters">
+            <ul class="totals" aria-label="Pictures">
+              <li class="zero"><svg class="mark mark-saved"><use href="#m-saved"/></svg><b id="c-saved">0</b><span>new pictures</span></li>
+              <li class="zero"><svg class="mark"><use href="#m-existing"/></svg><b id="c-existing">0</b><span>already saved</span></li>
+              <li class="zero"><svg class="mark"><use href="#m-linked"/></svg><b id="c-duplicates">0</b><span>identical, linked</span></li>
+              <li class="zero"><svg class="mark"><use href="#m-missing"/></svg><b id="c-missing">0</b><span>no longer public</span></li>
+              <li class="zero"><svg class="mark mark-failed"><use href="#m-failed"/></svg><b id="c-failed">0</b><span>failed</span></li>
+            </ul>
+
+            <div class="progress" id="progress" hidden>
+              <div class="bar" id="bar"><span id="bar-fill"></span></div>
+              <div class="bar shares" id="shares" hidden></div>
+              <p id="progress-text"></p>
+            </div>
+
+            <dl class="spent" aria-label="Requests and size">
+              <div><dt>Requests used</dt><dd id="c-credits">0</dd></div>
+              <div><dt>Requests left</dt><dd id="c-quota">—</dd></div>
+              <div><dt>Downloaded</dt><dd id="c-bytes">0 MB</dd></div>
+            </dl>
           </div>
 
           <div class="sheet-head">
@@ -217,13 +249,7 @@
           </div>
           <ol class="sheet blurred" id="sheet" aria-label="Most recently saved pictures"></ol>
 
-          <div class="run-actions">
-            <a class="btn primary" id="csv" href="#" aria-disabled="true">Download CSV</a>
-            <a class="btn quiet" id="zip" href="#" aria-disabled="true">Download ZIP</a>
-            <button type="button" class="btn quiet" id="cancel" hidden>Stop</button>
-            <button type="button" class="btn quiet" id="open-folder" hidden>Open folder</button>
-            <p class="folder" id="folder" hidden>Pictures are saved in <code id="folder-path"></code></p>
-          </div>
+          <p class="folder" id="folder" hidden>Pictures are saved in <code id="folder-path"></code></p>
 
           <details class="log">
             <summary>Activity</summary>
@@ -240,8 +266,10 @@
     </main>
 
     <footer class="footer">
-      <p>These are pictures of real people. Use them only where the law allows, and keep them secure. Anyone can hide their number at
+      <p id="footer-real">These are pictures of real people. Use them only where the law allows, and keep them secure. Anyone can hide their number at
         <a href="https://whatsapp.checkleaked.cc/opt-out" target="_blank" rel="noopener noreferrer">whatsapp.checkleaked.cc/opt-out</a>.
+        This project is not affiliated with WhatsApp or Meta.</p>
+      <p id="footer-demo" hidden>Demo data: the numbers are invented and the pictures are drawn, so nothing here shows a real person and nothing goes online.
         This project is not affiliated with WhatsApp or Meta.</p>
     </footer>
   </div>

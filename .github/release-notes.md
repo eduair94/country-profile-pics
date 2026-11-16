@@ -1,5 +1,7 @@
 Download every stored profile picture that matches your filters from the WP Data API, with a CSV of every field. Desktop app for Windows, macOS and Linux, plus a command line.
 
+**New in 1.1:** a new look, shared with its sibling app [WhatsApp Number Checker](https://github.com/eduair94/whatsapp-scraping-tool): light and dark following your system, each total led by a drawn mark, and a list of earlier runs you can read at a glance. Stop and the exports are now at the top of the run, a finished run shows its results as one bar, picture numbers stay the same after a reload, times use the 24-hour clock, and demo mode is labelled as such. The font now ships inside the app, so the window makes no request to anyone but the API and its picture server.
+
 ## Download
 
 | System | File |
