@@ -296,9 +296,11 @@ are spread thinly across the whole country.
 - The browser version listens on `127.0.0.1` only. It refuses requests whose `Host` is
   not local (DNS rebinding) and cross-site requests from other tabs, including
   image and link requests (`Sec-Fetch-Site`).
-- Your key is kept in memory and sent only to the API. It is never written to
-  disk, logged or shown back. Error messages are scrubbed of anything shaped
-  like a key.
+- Your key is sent only to the API, and is never logged or shown back. The
+  desktop app writes it to disk only encrypted by the operating system, and only
+  while **Remember this key** is ticked; the browser version and the command
+  line keep it in memory. Error messages are scrubbed of anything shaped like a
+  key.
 - Set `HOST=0.0.0.0` only if you understand that anyone who can reach the port
   can spend the key in `.env`. List the extra host names in `ALLOWED_HOSTS`.
 - Prefer `WA_API_KEY` in `.env` over `--key`, which ends up in shell history.
@@ -363,4 +365,5 @@ server's guards.
 
 ## License
 
-MIT
+[MIT](LICENSE). How to send a change: [CONTRIBUTING.md](CONTRIBUTING.md). Reporting
+a security problem: [SECURITY.md](SECURITY.md).

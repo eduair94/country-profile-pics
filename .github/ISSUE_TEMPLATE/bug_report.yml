@@ -1,0 +1,51 @@
+name: Something does not work
+description: The app shows an error, stops, or does something you did not expect.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting it. Please never paste your API key here.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What did you do, what did you expect, and what happened instead? Copy any message the app showed, and the last lines under Activity.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: The release you downloaded, for example 1.1.0.
+    validations:
+      required: true
+  - type: dropdown
+    id: system
+    attributes:
+      label: How you run it
+      options:
+        - Windows (installer)
+        - Windows (portable)
+        - macOS, Apple silicon
+        - macOS, Intel
+        - Linux (.deb)
+        - Linux (AppImage)
+        - In the browser (npm start)
+        - Command line
+    validations:
+      required: true
+  - type: dropdown
+    id: key
+    attributes:
+      label: Your key
+      options:
+        - Direct key
+        - "RapidAPI: DB Only"
+        - Demo mode
+        - Not sure
+  - type: textarea
+    id: filters
+    attributes:
+      label: Country and filters
+      description: The country you chose and any filters that were set.
