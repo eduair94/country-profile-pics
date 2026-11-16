@@ -1,9 +1,16 @@
 # Country Profile Pictures
 
+[![Latest release](https://img.shields.io/github/v/release/eduair94/country-profile-pics)](https://github.com/eduair94/country-profile-pics/releases/latest)
+[![Downloads](https://img.shields.io/github/downloads/eduair94/country-profile-pics/total)](https://github.com/eduair94/country-profile-pics/releases)
+[![CI](https://github.com/eduair94/country-profile-pics/actions/workflows/ci.yml/badge.svg)](https://github.com/eduair94/country-profile-pics/actions/workflows/ci.yml)
+[![MIT licence](https://img.shields.io/github/license/eduair94/country-profile-pics)](LICENSE)
+
 Download every stored profile picture that matches your filters from the
 **WP Data API**, for one country or all of them, together with a CSV of
 every field the API returns. A desktop app for Windows, macOS and Linux, plus a
 command line, and it never downloads the same picture twice.
+
+![A finished run in demo mode: the country as the headline, the totals, and the contact sheet of saved pictures](docs/images/07-finished.png)
 
 ## Download
 
@@ -310,6 +317,14 @@ show up here as *no longer public*.
 
 This project is not affiliated with, endorsed by or sponsored by WhatsApp LLC or
 Meta Platforms, Inc.
+
+## Its sister app
+
+[WhatsApp Number Checker](https://github.com/eduair94/whatsapp-scraping-tool)
+works the other way round: you bring a list of numbers (CSV, Excel or pasted)
+and it tells you which are on WhatsApp, with name, about, profile picture and
+business profile, and exports the answers to Excel, CSV or JSON. A direct key
+works in both apps, they share one look, and both are free and open source.
 
 ## Development
 
